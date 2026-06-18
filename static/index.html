@@ -204,9 +204,13 @@ td:first-child,th:first-child{text-align:left}
         </div>
         <button class="btn btn-primary" onclick="runKinetics()" style="margin-top:18px">Analyze</button>
       </div>
-      <div style="display:flex;gap:6px;margin:6px 0;flex-wrap:wrap">
+      <div style="display:flex;gap:6px;margin:6px 0;flex-wrap:wrap;align-items:center">
         <button class="btn btn-secondary btn-sm" onclick="loadKinExample('monod')">Example: Monod</button>
         <button class="btn btn-secondary btn-sm" onclick="loadKinExample('first')">Example: First-order</button>
+        <span style="color:#ccc;font-size:11px">|</span>
+        <span style="font-size:11px;color:#888">or upload CSV:</span>
+        <input type="file" id="kinFile" accept=".csv" style="font-size:11px;max-width:140px" onchange="loadKinCsv(this)">
+        <button class="btn btn-secondary btn-sm" onclick="downloadKinCsvTemplate()">Download Template</button>
       </div>
       <div class="chart" id="kinChart"></div>
       <div style="overflow-x:auto"><table id="kinTable"><thead><tr><th>Model</th><th>k</th><th>C₀</th><th>R²</th><th>RMSE</th></tr></thead><tbody></tbody></table></div>
@@ -587,6 +591,35 @@ function downloadCsvTemplate(){
   const csv='time,NH4-N\n0,50\n1,42\n2,35\n3,29\n4,24\n5,20\n6,17';
   const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download='nitrification_template.csv';a.click();
+  URL.revokeObjectURL(a.href);
+}
+function loadKinCsv(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const lines=e.target.result.trim().split('\n');
+    if(lines.length<2){alert('CSV must have a header row + at least 1 data row');return}
+    const headers=lines[0].split(',').map(h=>h.trim().toLowerCase());
+    const ti=headers.findIndex(h=>['time','t','hour'].includes(h));
+    const ci=headers.findIndex(h=>['conc','concentration','nh4','nh4-n','s','substrate'].includes(h));
+    if(ti===-1||ci===-1){alert('CSV must have time and concentration columns');return}
+    const times=[],concs=[];
+    for(let i=1;i<lines.length;i++){
+      const cols=lines[i].split(',');
+      const t=parseFloat(cols[ti]?.trim());const c=parseFloat(cols[ci]?.trim());
+      if(!isNaN(t)&&!isNaN(c)){times.push(t);concs.push(c)}
+    }
+    if(times.length<3){alert('Need at least 3 data points');return}
+    document.getElementById('kinTime').value=times.join(',');
+    document.getElementById('kinConc').value=concs.join(',');
+    runKinetics();
+  };
+  reader.readAsText(file);
+}
+function downloadKinCsvTemplate(){
+  const csv='time,conc\n0,50\n1,42\n2,35\n3,29\n4,24\n5,20';
+  const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='kinetics_template.csv';a.click();
   URL.revokeObjectURL(a.href);
 }
 </script>
