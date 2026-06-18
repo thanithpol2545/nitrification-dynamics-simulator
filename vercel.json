@@ -1,12 +1,11 @@
 {
-  "functions": {
-    "api/index.py": {
-      "runtime": "python3.12",
-      "memory": 256,
-      "maxDuration": 30
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
     }
-  },
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/api/index.py" }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "api/index.py" }
   ]
 }
