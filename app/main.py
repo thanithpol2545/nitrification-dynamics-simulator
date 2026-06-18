@@ -3,10 +3,27 @@ import io
 import json
 from pathlib import Path
 
+import numpy as np
 from fastapi import FastAPI, HTTPException, Query, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from pydantic import BaseModel, Field
+
+from .models import (
+    solve_nitrification,
+    normalize_params,
+    sensitivity_analysis,
+    compute_effective_mu_max,
+    free_ammonia,
+    free_nitrous_acid,
+    fa_fna_warning,
+    kinetic_analysis,
+    estimate_nitrification_params,
+    design_reactor,
+    oxygen_demand,
+    cstr_steady_state,
+    solve_cstr,
+)
 
 app = FastAPI(title="Nitrification Dynamics Simulator", description="Comprehensive nitrification kinetics modeling platform", version="3.0.0")
 
@@ -108,8 +125,6 @@ async def health():
 @app.post("/api/predict")
 async def predict(req: SimulationRequest):
     try:
-        from app.models import solve_nitrification, normalize_params, compute_effective_mu_max
-        import numpy as np
         params = normalize_params({
             "mu_max": req.mu_max, "Ks": req.Ks, "Y": req.Y,
             "inhibitor": req.inhibitor, "KI": req.KI,
@@ -140,8 +155,6 @@ async def predict(req: SimulationRequest):
 @app.post("/api/predict/aob-nob")
 async def predict_aob_nob(req: AOBNoBRequest):
     try:
-        from app.models import solve_nitrification, normalize_params, free_ammonia, free_nitrous_acid, fa_fna_warning
-        import numpy as np
         params = normalize_params({
             "model_type": "aob_nob",
             "mu_max_AOB": req.mu_max_AOB, "K_NH4": req.K_NH4, "Y_AOB": req.Y_AOB,
@@ -182,7 +195,6 @@ async def predict_aob_nob(req: AOBNoBRequest):
 @app.post("/api/sensitivity")
 async def sensitivity(req: SensitivityReq):
     try:
-        from app.models import normalize_params, sensitivity_analysis
         base = normalize_params(req.base_params.copy())
         results = sensitivity_analysis(base, req.param_name, req.values, [req.S_init, req.X_init], (0, req.time_days))
         return {"success": True, "data": results}
@@ -194,8 +206,6 @@ async def sensitivity(req: SensitivityReq):
 async def export_csv(S_init=50, X_init=0.1, time_days=10, mu_max=0.8, Ks=2.0, Y=0.15,
                      inhibition_type="none", inhibitor=0, KI=100, temperature=20, pH=7.5, DO=4.0):
     try:
-        from app.models import solve_nitrification, normalize_params
-        import numpy as np
         params = normalize_params({"mu_max": mu_max, "Ks": Ks, "Y": Y, "inhibitor": inhibitor, "KI": KI,
                                    "inhibition_type": inhibition_type, "temperature": temperature, "pH": pH, "DO": DO})
         sol = solve_nitrification([S_init, X_init], params, (0, time_days), np.linspace(0, time_days, 200))
@@ -211,7 +221,6 @@ async def export_csv(S_init=50, X_init=0.1, time_days=10, mu_max=0.8, Ks=2.0, Y=
 @app.post("/api/kinetic-analysis")
 async def kinetic_analysis_endpoint(time: list[float] = Form(...), conc: list[float] = Form(...)):
     try:
-        from app.models import kinetic_analysis
         result = kinetic_analysis(time, conc)
         return {"success": True, **result}
     except Exception as e:
@@ -221,7 +230,6 @@ async def kinetic_analysis_endpoint(time: list[float] = Form(...), conc: list[fl
 @app.post("/api/parameter-estimation")
 async def parameter_estimation(file: UploadFile = File(...), model_type: str = Form("monod")):
     try:
-        from app.models import estimate_nitrification_params
         if model_type not in ("monod", "haldane"):
             return {"success": False, "error": "model_type must be 'monod' or 'haldane'"}
         content = await file.read()
@@ -258,7 +266,6 @@ async def parameter_estimation(file: UploadFile = File(...), model_type: str = F
 @app.post("/api/design-reactor")
 async def design_reactor_endpoint(req: DesignRequest):
     try:
-        from app.models import design_reactor
         res = design_reactor(req.S_in, req.Q, req.target_S_eff, req.mu_max, req.Ks, req.Y, req.X, req.DO, req.temperature, req.pH)
         return {"success": True, **res}
     except Exception as e:
@@ -268,7 +275,6 @@ async def design_reactor_endpoint(req: DesignRequest):
 @app.post("/api/reactor-comparison")
 async def reactor_comparison(req: ReactorComparisonRequest):
     try:
-        from app.models import solve_nitrification, normalize_params, cstr_steady_state, solve_cstr
         import numpy as np
         t_span, t_eval = (0, req.time_days), np.linspace(0, req.time_days, 300)
 
@@ -319,7 +325,6 @@ async def reactor_comparison(req: ReactorComparisonRequest):
 @app.post("/api/oxygen-demand")
 async def oxygen_demand_endpoint(req: OxygenRequest):
     try:
-        from app.models import oxygen_demand
         res = oxygen_demand(req.NH4_removed)
         return {"success": True, **res}
     except Exception as e:

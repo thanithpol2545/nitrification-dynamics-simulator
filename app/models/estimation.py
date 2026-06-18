@@ -1,10 +1,13 @@
+import numpy as np
+from scipy.optimize import curve_fit
+from scipy.integrate import solve_ivp
+
 
 def zero_order_model(t, C0, k):
     return C0 - k * t
 
 
 def first_order_model(t, C0, k):
-    import numpy as np
     return C0 * np.exp(-k * t)
 
 
@@ -13,8 +16,6 @@ def second_order_model(t, C0, k):
 
 
 def kinetic_analysis(time_data, conc_data):
-    import numpy as np
-    from scipy.optimize import curve_fit
     t = np.array(time_data, dtype=float)
     C = np.array(conc_data, dtype=float)
 
@@ -49,9 +50,6 @@ def kinetic_analysis(time_data, conc_data):
 
 
 def estimate_nitrification_params(time_data, conc_data, model_type="monod"):
-    import numpy as np
-    from scipy.optimize import curve_fit
-    from scipy.integrate import solve_ivp
     t = np.array(time_data, dtype=float)
     C = np.array(conc_data, dtype=float)
 
