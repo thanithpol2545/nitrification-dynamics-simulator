@@ -509,7 +509,7 @@ async function simulate(){
       {x:d.time,y:d.X,type:'scatter',mode:'lines',name:'Biomass',yaxis:'y2',line:{color:ENG_COLORS.biomass,width:2,dash:'dash'}}
     ],{title:{text:'Nitrification Dynamics — Monod Model',font:{size:17}},xaxis:{title:{text:'Time (days)',font:{size:14}},tickfont:{size:13}},yaxis:{title:{text:'NH₄⁺ (mg/L)',font:{size:14}},tickfont:{size:13},color:ENG_COLORS.nh4},
       yaxis2:{title:{text:'Biomass (g/L)',font:{size:14}},tickfont:{size:13},overlaying:'y',side:'right',color:ENG_COLORS.biomass},
-      margin:{t:60,l:75,r:80,b:55},hovermode:'x unified',legend:{orientation:'h',y:1.12,x:0.25,font:{size:13}}},{responsive:true,toImageButtonOptions:{format:'png'}});
+      margin:{t:60,l:75,r:75,b:55},hovermode:'x unified',legend:{font:{size:13}}},{responsive:true,toImageButtonOptions:{format:'png'}});
     kpi.innerHTML=`<div class="kpi-card"><div class="kpi-label">NH₄⁺ Removal</div><div class="kpi-value">${d.removal_pct.toFixed(1)}<span class="kpi-unit">%</span></div></div>
       <div class="kpi-card"><div class="kpi-label">Final NH₄⁺</div><div class="kpi-value">${d.final_S.toFixed(2)}<span class="kpi-unit">mg/L</span></div></div>
       <div class="kpi-card"><div class="kpi-label">Eff. μ<sub>max</sub></div><div class="kpi-value">${d.effective_mu_max.toFixed(4)}<span class="kpi-unit">/day</span></div></div>`;
@@ -541,7 +541,7 @@ async function runAOB(){
       {x:d.time,y:d.X_NOB,type:'scatter',mode:'lines',name:'X<sub>NOB</sub>',yaxis:'y2',line:{color:ENG_COLORS.nob,width:1.5,dash:'dash'}}
     ],{title:{text:'AOB/NOB Two-Step Nitrification',font:{size:17}},xaxis:{title:{text:'Time (days)',font:{size:14}},tickfont:{size:13}},yaxis:{title:{text:'N (mg/L)',font:{size:14}},tickfont:{size:13}},
       yaxis2:{title:{text:'Biomass (g/L)',font:{size:14}},tickfont:{size:13},overlaying:'y',side:'right'},
-      margin:{t:60,l:75,r:80,b:55},hovermode:'x unified',legend:{orientation:'h',y:1.12,x:0.25,font:{size:13}}},{responsive:true,toImageButtonOptions:{format:'png'}});
+      margin:{t:60,l:75,r:85,b:55},hovermode:'x unified',legend:{font:{size:13}}},{responsive:true,toImageButtonOptions:{format:'png'}});
     kpi.innerHTML=`<div class="kpi-card"><div class="kpi-label">NH₄⁺ Removed</div><div class="kpi-value">${d.NH4_removal}<span class="kpi-unit">%</span></div></div>
       <div class="kpi-card"><div class="kpi-label">NO₂⁻ Peak</div><div class="kpi-value">${d.NO2_peak}<span class="kpi-unit">mg/L</span></div></div>
       <div class="kpi-card"><div class="kpi-label">NO₃⁻ Final</div><div class="kpi-value">${d.NO3_final}<span class="kpi-unit">mg/L</span></div></div>`;
@@ -577,7 +577,7 @@ async function runSensitivity(){
     ],{title:{text:'Sensitivity: '+pl,font:{size:17}},xaxis:{title:{text:pl,font:{size:14}},tickfont:{size:13}},yaxis:{title:{text:'Removal %',font:{size:14}},tickfont:{size:13},color:ENG_COLORS.nh4},
       yaxis2:{title:{text:'Final NH₄⁺',font:{size:14}},tickfont:{size:13},overlaying:'y',side:'right',color:ENG_COLORS.no3},
       yaxis3:{title:{text:'Eff. μ_max',font:{size:14}},tickfont:{size:13},overlaying:'y',side:'right',position:.85,color:ENG_COLORS.nob},
-      margin:{t:60,l:75,r:90,b:55},hovermode:'x unified',legend:{orientation:'h',y:1.12,x:0.25,font:{size:13}}},{responsive:true});
+      margin:{t:60,l:75,r:120,b:55},hovermode:'x unified',legend:{font:{size:13}}},{responsive:true});
     document.querySelector('#sensTable tbody').innerHTML=d.map(v=>`<tr><td>${v.param_value}</td><td>${v.final_S.toFixed(2)}</td><td>${v.removal_pct.toFixed(1)}</td><td>${v.effective_mu_max.toFixed(4)}</td></tr>`).join('');
   }catch(e){alert('Error: '+e.message)}
 }
@@ -596,7 +596,7 @@ async function runKinetics(){
     document.getElementById('kinBest').innerHTML='<strong>Best fit:</strong> '+r.best_model+' (R²='+r.best_R2+')';
     const traces=r.results.map(v=>({x:t,y:v.predicted.length?t.map((_,i)=>v.predicted[i]):[],type:'scatter',mode:'lines',name:v.model+' (R²='+v.R2+')'}));
     traces.unshift({x:t,y:c,type:'scatter',mode:'markers',name:'Experimental',marker:{color:'#333',size:8}});
-    Plotly.react(document.getElementById('kinChart'),traces,{title:{text:'Kinetic Model Fitting',font:{size:17}},xaxis:{title:{text:'Time',font:{size:14}},tickfont:{size:13}},yaxis:{title:{text:'Concentration',font:{size:14}},tickfont:{size:13}},margin:{t:60,l:75,r:40,b:55},hovermode:'x unified',legend:{orientation:'h',y:1.12,x:0.25,font:{size:13}}},{responsive:true});
+    Plotly.react(document.getElementById('kinChart'),traces,{title:{text:'Kinetic Model Fitting',font:{size:17}},xaxis:{title:{text:'Time',font:{size:14}},tickfont:{size:13}},yaxis:{title:{text:'Concentration',font:{size:14}},tickfont:{size:13}},margin:{t:60,l:75,r:55,b:55},hovermode:'x unified',legend:{font:{size:13}}},{responsive:true});
   }catch(e){alert('Error: '+e.message)}
 }
 
@@ -614,7 +614,7 @@ async function runEstimation(){
     Plotly.react(document.getElementById('estChart'),[
       {x:r.time,y:r.experimental,type:'scatter',mode:'markers',name:'Experimental',marker:{color:'#333',size:7}},
       {x:r.time,y:r.predicted,type:'scatter',mode:'lines',name:(r.model_type==='haldane'?'Haldane':'Monod')+' (R²='+r.R2+')',line:{color:ENG_COLORS.nh4,width:2.5}}
-    ],{title:{text:'Parameter Estimation — '+r.model_type.charAt(0).toUpperCase()+r.model_type.slice(1),font:{size:17}},xaxis:{title:{text:'Time',font:{size:14}},tickfont:{size:13}},yaxis:{title:{text:'NH₄⁺ (mg/L)',font:{size:14}},tickfont:{size:13}},margin:{t:60,l:75,r:40,b:55},hovermode:'x unified',legend:{orientation:'h',y:1.12,x:0.25,font:{size:13}}},{responsive:true});
+    ],{title:{text:'Parameter Estimation — '+r.model_type.charAt(0).toUpperCase()+r.model_type.slice(1),font:{size:17}},xaxis:{title:{text:'Time',font:{size:14}},tickfont:{size:13}},yaxis:{title:{text:'NH₄⁺ (mg/L)',font:{size:14}},tickfont:{size:13}},margin:{t:60,l:75,r:55,b:55},hovermode:'x unified',legend:{font:{size:13}}},{responsive:true});
     const ki=r.Ki!==undefined?`<div class="kpi-card"><div class="kpi-label">K<sub>i</sub></div><div class="kpi-value">${r.Ki}<span class="kpi-unit">mg/L</span></div></div>`:'';
     document.getElementById('estMetrics').innerHTML=
       `<div class="kpi-card"><div class="kpi-label">μ<sub>max</sub></div><div class="kpi-value">${r.mu_max}<span class="kpi-unit">/day</span></div></div>
@@ -648,7 +648,7 @@ async function runReactor(){
       {x:d.time,y:d.cstr_X,type:'scatter',mode:'lines',name:'CSTR Biomass',yaxis:'y2',line:{color:ENG_COLORS.nob,width:1.5,dash:'dash'}}
     ],{title:{text:'Batch vs CSTR Comparison',font:{size:17}},xaxis:{title:{text:'Time (days)',font:{size:14}},tickfont:{size:13}},yaxis:{title:{text:'NH₄⁺ (mg/L)',font:{size:14}},tickfont:{size:13}},
       yaxis2:{title:{text:'Biomass (g/L)',font:{size:14}},tickfont:{size:13},overlaying:'y',side:'right'},
-      margin:{t:60,l:75,r:85,b:55},hovermode:'x unified',legend:{orientation:'h',y:1.12,x:0.25,font:{size:13}}},{responsive:true,toImageButtonOptions:{format:'png'}});
+      margin:{t:60,l:75,r:85,b:55},hovermode:'x unified',legend:{font:{size:13}}},{responsive:true,toImageButtonOptions:{format:'png'}});
     const h=d.HRT_hours<24?d.HRT_hours+' hrs':(d.HRT_hours/24).toFixed(1)+' days';
     document.getElementById('rctMetrics').innerHTML=
       `<div class="kpi-card"><div class="kpi-label">Batch: Final NH₄⁺</div><div class="kpi-value">${d.batch_final_S}<span class="kpi-unit">mg/L</span></div></div>
