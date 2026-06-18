@@ -3,7 +3,6 @@ import io
 import json
 from pathlib import Path
 
-import numpy as np
 from fastapi import FastAPI, HTTPException, Query, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, PlainTextResponse
@@ -125,6 +124,7 @@ async def health():
 @app.post("/api/predict")
 async def predict(req: SimulationRequest):
     try:
+        import numpy as np
         params = normalize_params({
             "mu_max": req.mu_max, "Ks": req.Ks, "Y": req.Y,
             "inhibitor": req.inhibitor, "KI": req.KI,
@@ -155,6 +155,7 @@ async def predict(req: SimulationRequest):
 @app.post("/api/predict/aob-nob")
 async def predict_aob_nob(req: AOBNoBRequest):
     try:
+        import numpy as np
         params = normalize_params({
             "model_type": "aob_nob",
             "mu_max_AOB": req.mu_max_AOB, "K_NH4": req.K_NH4, "Y_AOB": req.Y_AOB,
@@ -206,6 +207,7 @@ async def sensitivity(req: SensitivityReq):
 async def export_csv(S_init=50, X_init=0.1, time_days=10, mu_max=0.8, Ks=2.0, Y=0.15,
                      inhibition_type="none", inhibitor=0, KI=100, temperature=20, pH=7.5, DO=4.0):
     try:
+        import numpy as np
         params = normalize_params({"mu_max": mu_max, "Ks": Ks, "Y": Y, "inhibitor": inhibitor, "KI": KI,
                                    "inhibition_type": inhibition_type, "temperature": temperature, "pH": pH, "DO": DO})
         sol = solve_nitrification([S_init, X_init], params, (0, time_days), np.linspace(0, time_days, 200))
