@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
-from .models import (
+from app.models import (
     solve_nitrification,
     normalize_params,
     sensitivity_analysis,
