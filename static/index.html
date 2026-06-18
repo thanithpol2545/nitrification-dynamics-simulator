@@ -3,640 +3,573 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nitrification Dynamics Simulator</title>
+<title>Nitrification Dynamics Simulator v3</title>
 <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f2f5;color:#333}
+.tabs{display:flex;background:#fff;border-bottom:1px solid #e0e0e0;position:sticky;top:0;z-index:10;overflow-x:auto}
+.tab{padding:12px 18px;cursor:pointer;font-size:13px;font-weight:500;color:#888;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.tab:hover{color:#4a6cf7;background:#f8f9fc}.tab.active{color:#4a6cf7;border-bottom-color:#4a6cf7}
 .app{display:flex;min-height:100vh}
-
-/* Tabs */
-.tabs{display:flex;background:#fff;border-bottom:1px solid #e0e0e0;position:sticky;top:0;z-index:10}
-.tab{padding:14px 24px;cursor:pointer;font-size:14px;font-weight:500;color:#888;border-bottom:2px solid transparent;transition:all .15s}
-.tab:hover{color:#4a6cf7;background:#f8f9fc}
-.tab.active{color:#4a6cf7;border-bottom-color:#4a6cf7}
-.tab-badge{background:#4a6cf7;color:#fff;font-size:10px;padding:1px 7px;border-radius:10px;margin-left:6px;vertical-align:middle}
-
-/* Sidebar */
-.sidebar{width:400px;background:white;padding:20px;border-right:1px solid #e0e0e0;overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column}
-.sidebar.collapsed{display:none}
-.main{flex:1;padding:20px;overflow-y:auto}
-h1{font-size:18px;color:#1a1a2e;display:flex;align-items:center;gap:8px}
-h1 small{font-size:12px;color:#888;font-weight:400}
-.subtitle{font-size:12px;color:#888;margin-bottom:16px}
-.section{margin-bottom:16px}
-.section-title{font-size:11px;font-weight:600;color:#777;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
-.section-title .hint{font-size:10px;color:#aaa;font-weight:400;text-transform:none;letter-spacing:0}
-.param-group{display:flex;gap:10px;margin-bottom:6px}
+.sidebar{width:380px;background:white;padding:18px;border-right:1px solid #e0e0e0;overflow-y:auto;flex-shrink:0;display:none;flex-direction:column}
+.sidebar.active{display:flex}.main{flex:1;padding:18px;overflow-y:auto}
+h1{font-size:17px;color:#1a1a2e;display:flex;align-items:center;gap:8px}
+h1 small{font-size:11px;color:#888;font-weight:400}
+.subtitle{font-size:11px;color:#888;margin-bottom:14px}
+.section{margin-bottom:14px}
+.section-title{font-size:11px;font-weight:600;color:#777;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.param-group{display:flex;gap:8px;margin-bottom:4px}
 .param{flex:1}
-.param label{display:flex;justify-content:space-between;font-size:11px;color:#666;margin-bottom:2px}
-.param label .val{font-weight:600;color:#1a1a2e}
+.param label{display:flex;justify-content:space-between;font-size:11px;color:#666;margin-bottom:2px}.param label .val{font-weight:600;color:#1a1a2e}
 .param input[type="range"]{width:100%;margin:2px 0;accent-color:#4a6cf7;height:4px;cursor:pointer}
-select{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-size:13px;background:white;cursor:pointer}
-select:focus{outline:2px solid #4a6cf7;outline-offset:-1px}
-
-/* Buttons */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;text-decoration:none}
-.btn-primary{background:#4a6cf7;color:#fff}
-.btn-primary:hover{background:#3b5de7}
-.btn-primary:disabled{background:#a0b4f7;cursor:not-allowed}
-.btn-secondary{background:#e8ecf4;color:#444}
-.btn-secondary:hover{background:#dce0ec}
-.btn-danger{background:#fee2e2;color:#dc2626}
-.btn-danger:hover{background:#fecaca}
-.btn-sm{padding:5px 10px;font-size:11px}
-.btn-group{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
-.btn-block{width:100%}
-.btn-success{background:#10b981;color:#fff}
-.btn-success:hover{background:#059669}
-
-/* Loading */
-.loading{text-align:center;padding:10px;color:#666;font-size:13px;display:none}
-.error{background:#fff0f0;border:1px solid #ffd4d4;color:#d32f2f;padding:10px 14px;border-radius:6px;margin:8px 0;display:none;font-size:12px}
-
-/* Chart */
-#chart{width:100%;height:450px}
-.metrics{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap}
-.metric{background:white;border-radius:8px;padding:12px 16px;flex:1;min-width:120px;border:1px solid #e0e0e0}
-.metric-label{font-size:11px;color:#888;margin-bottom:2px}
-.metric-value{font-size:20px;font-weight:700;color:#1a1a2e}
-.metric-unit{font-size:12px;color:#888;font-weight:400}
-.metric .sub{font-size:11px;color:#999;margin-top:2px}
-
-/* Info panel */
-.info{margin-top:16px;padding:14px;background:#f8f9fc;border-radius:8px;font-size:11px;color:#666;line-height:1.6;max-height:200px;overflow-y:auto}
-.info h3{font-size:12px;color:#333;margin-bottom:6px}
-.info .formula{font-family:'Courier New',monospace;background:#eee;padding:1px 5px;border-radius:3px;font-size:11px}
-
-/* Tab panels */
-.tab-panel{display:none}
-.tab-panel.active{display:block}
-
-/* History */
-.saved-run{padding:10px 14px;border:1px solid #e0e0e0;border-radius:8px;margin-bottom:8px;background:#fafbfc;cursor:pointer;transition:all .15s;position:relative}
-.saved-run:hover{border-color:#4a6cf7;background:#f0f4ff}
-.saved-run.selected{border-color:#4a6cf7;background:#eef2ff}
-.saved-run .name{font-weight:600;font-size:13px;color:#1a1a2e;margin-bottom:2px}
-.saved-run .meta{font-size:11px;color:#888}
-.saved-run .del{position:absolute;top:8px;right:10px;cursor:pointer;color:#ccc;font-size:16px;line-height:1}
-.saved-run .del:hover{color:#dc2626}
-.empty-state{text-align:center;padding:40px 20px;color:#aaa;font-size:13px}
-
-/* Sensitivity */
-.sens-controls{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-end}
-.sens-controls .param{max-width:200px}
-#sensChart{width:100%;height:400px}
-#sensTable{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
-#sensTable th{background:#f8f9fc;padding:8px 12px;text-align:right;font-weight:600;color:#555;border-bottom:2px solid #e0e0e0}
-#sensTable td{padding:6px 12px;text-align:right;border-bottom:1px solid #eee}
-#sensTable td:first-child,#sensTable th:first-child{text-align:left}
-
-/* Compare */
-.compare-container{display:flex;gap:16px}
-.compare-panel{flex:1;min-width:0}
-.compare-panel h3{font-size:13px;color:#555;margin-bottom:8px}
-.compare-panel select{width:100%;margin-bottom:8px}
-
-@media(max-width:900px){.app{flex-direction:column}.sidebar{width:100%;border-right:none;border-bottom:1px solid #e0e0e0;max-height:50vh}.metrics{flex-direction:column}.compare-container{flex-direction:column}}
+select{width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:5px;font-size:12px;background:white;cursor:pointer}
+input[type="number"]{width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:5px;font-size:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;text-decoration:none}
+.btn-primary{background:#4a6cf7;color:#fff}.btn-primary:hover{background:#3b5de7}.btn-primary:disabled{background:#a0b4f7;cursor:not-allowed}
+.btn-secondary{background:#e8ecf4;color:#444}.btn-secondary:hover{background:#dce0ec}
+.btn-success{background:#10b981;color:#fff}.btn-success:hover{background:#059669}
+.btn-danger{background:#fee2e2;color:#dc2626}.btn-danger:hover{background:#fecaca}
+.btn-sm{padding:4px 10px;font-size:11px}.btn-block{width:100%}.btn-group{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.inline-group{display:flex;gap:8px;align-items:flex-end}
+.loading{text-align:center;padding:8px;color:#666;font-size:12px;display:none}
+.error{background:#fff0f0;border:1px solid #ffd4d4;color:#d32f2f;padding:8px 12px;border-radius:6px;margin:6px 0;display:none;font-size:12px}
+.info{background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;padding:8px 12px;font-size:11px;margin:6px 0;display:none}
+.chart{width:100%;height:400px}
+.metrics{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+.metric{background:white;border-radius:8px;padding:10px 14px;flex:1;min-width:100px;border:1px solid #e0e0e0}
+.metric-label{font-size:10px;color:#888;margin-bottom:1px}
+.metric-value{font-size:18px;font-weight:700;color:#1a1a2e}
+.metric-unit{font-size:11px;color:#888;font-weight:400}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.eq-box{background:#f8f9fc;border-radius:6px;padding:10px 14px;margin:4px 0;font-size:12px;font-family:'Courier New',monospace;border:1px solid #e0e0e0}
+.eq-box strong{color:#4a6cf7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+.warn-box{padding:8px 12px;border-radius:6px;font-size:11px;margin:4px 0}
+.warn-low{background:#f0fdf4;border:1px solid #86efac;color:#166534}
+.warn-moderate{background:#fffbeb;border:1px solid #fcd34d;color:#92400e}
+.warn-high{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b}
+table{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0}
+th{background:#f8f9fc;padding:6px 10px;text-align:right;font-weight:600;color:#555;border-bottom:2px solid #e0e0e0}
+td{padding:4px 10px;text-align:right;border-bottom:1px solid #eee}
+td:first-child,th:first-child{text-align:left}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:900px){.app{flex-direction:column}.sidebar{width:100%;border-right:none;border-bottom:1px solid #e0e0e0;max-height:50vh}.grid-2{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 
 <div class="tabs" id="mainTabs">
   <div class="tab active" data-tab="simulate" onclick="switchTab('simulate')">Simulate</div>
+  <div class="tab" data-tab="aob_nob" onclick="switchTab('aob_nob')">AOB/NOB</div>
   <div class="tab" data-tab="sensitivity" onclick="switchTab('sensitivity')">Sensitivity</div>
-  <div class="tab" data-tab="history" onclick="switchTab('history')">History <span class="tab-badge" id="historyBadge">0</span></div>
-  <div class="tab" data-tab="compare" onclick="switchTab('compare')">Compare</div>
+  <div class="tab" data-tab="kinetics" onclick="switchTab('kinetics')">Kinetics</div>
+  <div class="tab" data-tab="estimation" onclick="switchTab('estimation')">Estimation</div>
+  <div class="tab" data-tab="design" onclick="switchTab('design')">Design</div>
+  <div class="tab" data-tab="oxygen" onclick="switchTab('oxygen')">Oxygen</div>
+  <div class="tab" data-tab="reactor" onclick="switchTab('reactor')">Reactor</div>
+  <div class="tab" data-tab="theory" onclick="switchTab('theory')">Theory</div>
 </div>
 
 <div class="app">
-  <div class="sidebar" id="sidebar">
-    <h1>Nitrification <small>v2</small></h1>
-    <div class="subtitle">Monod + Inhibition + Temp + pH</div>
-
-    <div class="section">
-      <div class="section-title">Initial Conditions</div>
+  <!-- SIDEBAR: simulate -->
+  <div class="sidebar active" id="sidebar-simulate">
+    <h1>Nitrification <small>v3</small></h1>
+    <div class="subtitle">Single-step Monod model</div>
+    <div class="section"><div class="section-title">Initial Conditions</div>
       <div class="param-group">
         <div class="param"><label>NH₄⁺ <span class="val" id="S_init_val">50</span></label><input type="range" id="S_init" min="1" max="200" value="50"></div>
         <div class="param"><label>Biomass <span class="val" id="X_init_val">0.10</span></label><input type="range" id="X_init" min="0.01" max="1.0" value="0.1" step="0.01"></div>
       </div>
     </div>
-
-    <div class="section">
-      <div class="section-title">Kinetic Parameters</div>
-      <div class="param"><label>μ<sub>max</sub> (/day) at 20°C <span class="val" id="mu_max_val">0.8</span></label><input type="range" id="mu_max" min="0.1" max="2.0" value="0.8" step="0.1"></div>
+    <div class="section"><div class="section-title">Kinetics</div>
+      <div class="param"><label>μ<sub>max</sub> (/day) <span class="val" id="mu_max_val">0.8</span></label><input type="range" id="mu_max" min="0.1" max="2.0" value="0.8" step="0.1"></div>
       <div class="param-group">
-        <div class="param"><label>K<sub>s</sub> (mg/L) <span class="val" id="Ks_val">2.0</span></label><input type="range" id="Ks" min="0.5" max="20" value="2.0" step="0.5"></div>
-        <div class="param"><label>Yield Y <span class="val" id="Y_val">0.15</span></label><input type="range" id="Y" min="0.05" max="0.5" value="0.15" step="0.01"></div>
+        <div class="param"><label>K<sub>s</sub> <span class="val" id="Ks_val">2.0</span></label><input type="range" id="Ks" min="0.5" max="20" value="2.0" step="0.5"></div>
+        <div class="param"><label>Y <span class="val" id="Y_val">0.15</span></label><input type="range" id="Y" min="0.05" max="0.5" value="0.15" step="0.01"></div>
       </div>
     </div>
-
-    <div class="section">
-      <div class="section-title">Environmental Conditions</div>
+    <div class="section"><div class="section-title">Environment</div>
       <div class="param-group">
-        <div class="param"><label>Temperature (°C) <span class="val" id="temperature_val">20</span></label><input type="range" id="temperature" min="0" max="45" value="20"></div>
+        <div class="param"><label>Temp (°C) <span class="val" id="T_val">20</span></label><input type="range" id="temperature" min="0" max="45" value="20"></div>
         <div class="param"><label>pH <span class="val" id="pH_val">7.5</span></label><input type="range" id="pH" min="2" max="12" value="7.5" step="0.1"></div>
       </div>
-      <div style="font-size:11px;color:#888;margin-top:4px">Effective μ<sub>max</sub>: <strong id="effMuMaxDisplay" style="color:#4a6cf7">0.8000</strong> /day</div>
+      <div class="param"><label>DO (mg/L) <span class="val" id="DO_val">4.0</span></label><input type="range" id="DO" min="0" max="10" value="4.0" step="0.1"></div>
     </div>
-
-    <div class="section">
-      <div class="section-title">Simulation</div>
-      <div class="param"><label>Duration (days) <span class="val" id="time_days_val">10</span></label><input type="range" id="time_days" min="1" max="60" value="10"></div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Inhibition <span class="hint"></span></div>
-      <div class="param" style="margin-bottom:8px">
-        <select id="inhibition_type" onchange="toggleInhibitor()">
-          <option value="none">None</option>
-          <option value="competitive">Competitive</option>
-          <option value="uncompetitive">Uncompetitive</option>
-          <option value="non-competitive">Non-competitive</option>
-        </select>
-      </div>
-      <div id="inhibitor-section">
+    <div class="section"><div class="section-title">Inhibition</div>
+      <select id="inhibition_type" onchange="toggleInhibitor()">
+        <option value="none">None</option><option value="competitive">Competitive</option>
+        <option value="uncompetitive">Uncompetitive</option><option value="non-competitive">Non-competitive</option>
+      </select>
+      <div id="inhibitor-section" style="margin-top:6px">
         <div class="param-group">
-          <div class="param"><label>Inhibitor I <span class="val" id="inhibitor_val">0</span></label><input type="range" id="inhibitor" min="0" max="500" value="0"></div>
+          <div class="param"><label>I (mg/L) <span class="val" id="inhibitor_val">0</span></label><input type="range" id="inhibitor" min="0" max="500" value="0"></div>
           <div class="param"><label>K<sub>I</sub> <span class="val" id="KI_val">100</span></label><input type="range" id="KI" min="1" max="500" value="100"></div>
         </div>
       </div>
     </div>
-
-    <button class="btn btn-primary btn-block" id="simulateBtn" onclick="simulate()">▶ Simulate</button>
-    <div class="btn-group">
-      <button class="btn btn-secondary btn-sm" onclick="resetDefaults()">Reset</button>
-      <button class="btn btn-secondary btn-sm" onclick="saveRun()" id="saveBtn" disabled>Save Run</button>
-      <a class="btn btn-secondary btn-sm" onclick="exportCSV()" id="exportBtn" style="pointer-events:none;opacity:.5">Export CSV</a>
+    <div class="section"><div class="section-title">Duration</div>
+      <div class="param"><label>Days <span class="val" id="time_days_val">10</span></label><input type="range" id="time_days" min="1" max="60" value="10"></div>
     </div>
-    <div class="loading" id="loading">Running ODE solver...</div>
-    <div class="error" id="error"></div>
+    <button class="btn btn-primary btn-block" id="simBtn" onclick="simulate()">Run Simulation</button>
+    <div class="loading" id="simLoading">Running ODE solver...</div>
+    <div class="error" id="simError"></div>
+  </div>
+
+  <!-- SIDEBAR: aob_nob -->
+  <div class="sidebar" id="sidebar-aob_nob">
+    <h1>AOB / NOB <small>two-step</small></h1>
+    <div class="subtitle">NH₄⁺ → NO₂⁻ → NO₃⁻</div>
+    <div class="section"><div class="section-title">Initial Conditions</div>
+      <div class="param-group">
+        <div class="param"><label>NH₄⁺ <span class="val" id="NH4_init_val">50</span></label><input type="range" id="NH4_init" min="1" max="200" value="50"></div>
+        <div class="param"><label>NO₂⁻ <span class="val" id="NO2_init_val">0</span></label><input type="range" id="NO2_init" min="0" max="50" value="0"></div>
+      </div>
+      <div class="param-group">
+        <div class="param"><label>NO₃⁻ <span class="val" id="NO3_init_val">0</span></label><input type="range" id="NO3_init" min="0" max="50" value="0"></div>
+        <div class="param"><label>X_AOB <span class="val" id="X_AOB_init_val">0.10</span></label><input type="range" id="X_AOB_init" min="0.01" max="1.0" value="0.1" step="0.01"></div>
+      </div>
+      <div class="param"><label>X_NOB <span class="val" id="X_NOB_init_val">0.05</span></label><input type="range" id="X_NOB_init" min="0.01" max="1.0" value="0.05" step="0.01"></div>
+    </div>
+    <div class="section"><div class="section-title">AOB Parameters</div>
+      <div class="param"><label>μ<sub>max,AOB</sub> <span class="val" id="mu_max_AOB_val">0.8</span></label><input type="range" id="mu_max_AOB" min="0.1" max="2.0" value="0.8" step="0.1"></div>
+      <div class="param-group">
+        <div class="param"><label>K<sub>NH4</sub> <span class="val" id="K_NH4_val">2.0</span></label><input type="range" id="K_NH4" min="0.5" max="20" value="2.0" step="0.5"></div>
+        <div class="param"><label>Y<sub>AOB</sub> <span class="val" id="Y_AOB_val">0.15</span></label><input type="range" id="Y_AOB" min="0.05" max="0.5" value="0.15" step="0.01"></div>
+      </div>
+    </div>
+    <div class="section"><div class="section-title">NOB Parameters</div>
+      <div class="param"><label>μ<sub>max,NOB</sub> <span class="val" id="mu_max_NOB_val">1.0</span></label><input type="range" id="mu_max_NOB" min="0.1" max="2.0" value="1.0" step="0.1"></div>
+      <div class="param-group">
+        <div class="param"><label>K<sub>NO2</sub> <span class="val" id="K_NO2_val">1.5</span></label><input type="range" id="K_NO2" min="0.5" max="20" value="1.5" step="0.5"></div>
+        <div class="param"><label>Y<sub>NOB</sub> <span class="val" id="Y_NOB_val">0.08</span></label><input type="range" id="Y_NOB" min="0.01" max="0.5" value="0.08" step="0.01"></div>
+      </div>
+    </div>
+    <div class="section"><div class="section-title">Conditions</div>
+      <div class="param-group">
+        <div class="param"><label>Temp <span class="val" id="aob_T_val">20</span></label><input type="range" id="aob_temperature" min="0" max="45" value="20"></div>
+        <div class="param"><label>pH <span class="val" id="aob_pH_val">7.5</span></label><input type="range" id="aob_pH" min="2" max="12" value="7.5" step="0.1"></div>
+      </div>
+      <div class="param"><label>DO <span class="val" id="aob_DO_val">4.0</span></label><input type="range" id="aob_DO" min="0" max="10" value="4.0" step="0.1"></div>
+      <div class="param"><label>Days <span class="val" id="aob_time_days_val">10</span></label><input type="range" id="aob_time_days" min="1" max="60" value="10"></div>
+    </div>
+    <button class="btn btn-primary btn-block" onclick="runAOB()">Run AOB/NOB</button>
+    <div class="loading" id="aobLoading">Running...</div>
+    <div class="error" id="aobError"></div>
   </div>
 
   <div class="main">
-    <!-- SIMULATE TAB -->
+    <!-- TAB: Simulate -->
     <div class="tab-panel active" id="panel-simulate">
-      <div id="chart"></div>
-      <div class="metrics">
-        <div class="metric"><div class="metric-label">Final NH₄⁺</div><div class="metric-value" id="metric_final_S">— <span class="metric-unit">mg/L</span></div></div>
-        <div class="metric"><div class="metric-label">Final Biomass</div><div class="metric-value" id="metric_final_X">— <span class="metric-unit">g/L</span></div></div>
-        <div class="metric"><div class="metric-label">Removal</div><div class="metric-value" id="metric_removal">— <span class="metric-unit">%</span></div></div>
-        <div class="metric"><div class="metric-label">Effective μ<sub>max</sub></div><div class="metric-value" id="metric_mu_eff">— <span class="metric-unit">/day</span></div></div>
-      </div>
-      <div class="info" id="infoPanel">
-        <h3>Model Equations</h3>
-        <p><strong>Monod:</strong> <span class="formula">μ = μ_max · S / (K<sub>s</sub> + S)</span></p>
-        <p><strong>Temp:</strong> <span class="formula">f(T) = 1.07<sup>(T-20)</sup></span> · <strong>pH:</strong> <span class="formula">f(pH) = exp(-0.5·((pH - 6.5)/1.5)²)</span> [pH&lt;6.5]</p>
-      </div>
+      <div class="chart" id="simChart"></div>
+      <div class="metrics" id="simMetrics"></div>
+      <div class="info" id="simInfo" style="display:none"></div>
+      <div class="btn-group"><button class="btn btn-secondary btn-sm" onclick="saveResult()">Save</button><a class="btn btn-secondary btn-sm" onclick="exportCSV()">Export CSV</a></div>
     </div>
 
-    <!-- SENSITIVITY TAB -->
+    <!-- TAB: AOB/NOB -->
+    <div class="tab-panel" id="panel-aob_nob">
+      <div class="chart" id="aobChart"></div>
+      <div id="aobFA"></div>
+      <div class="grid-2" id="aobMetrics"></div>
+      <div class="btn-group"><button class="btn btn-secondary btn-sm" onclick="saveResult()">Save</button></div>
+    </div>
+
+    <!-- TAB: Sensitivity -->
     <div class="tab-panel" id="panel-sensitivity">
-      <div class="sens-controls">
-        <div class="param">
-          <label>Parameter to vary</label>
-          <select id="sensParam" onchange="updateSensRange()">
-            <option value="mu_max">μ_max (/day)</option>
-            <option value="Ks">K_s (mg/L)</option>
-            <option value="Y">Yield Y</option>
-            <option value="S_init">Initial NH₄⁺ (mg/L)</option>
-            <option value="temperature">Temperature (°C)</option>
-            <option value="pH">pH</option>
-          </select>
-        </div>
-        <div class="param">
-          <label>From</label>
-          <input type="number" id="sensFrom" step="any" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-size:13px">
-        </div>
-        <div class="param">
-          <label>To</label>
-          <input type="number" id="sensTo" step="any" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-size:13px">
-        </div>
-        <div class="param" style="max-width:80px">
-          <label>Steps</label>
-          <input type="number" id="sensSteps" value="10" min="3" max="50" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-size:13px">
-        </div>
-        <button class="btn btn-primary" onclick="runSensitivity()" style="margin-bottom:0">Run</button>
+      <div class="inline-group">
+        <div class="param" style="max-width:160px"><label>Parameter</label><select id="sensParam" onchange="updateSensRange()">
+          <option value="mu_max">μ_max</option><option value="Ks">K_s</option><option value="Y">Yield</option>
+          <option value="temperature">Temp</option><option value="pH">pH</option><option value="DO">DO</option><option value="S_init">NH₄ initial</option>
+        </select></div>
+        <div class="param" style="max-width:80px"><label>From</label><input type="number" id="sensFrom" step="any"></div>
+        <div class="param" style="max-width:80px"><label>To</label><input type="number" id="sensTo" step="any"></div>
+        <div class="param" style="max-width:60px"><label>Steps</label><input type="number" id="sensSteps" value="10" min="3" max="50"></div>
+        <button class="btn btn-primary" onclick="runSensitivity()" style="margin-bottom:2px">Run</button>
       </div>
-      <div id="sensChart"></div>
-      <div style="overflow-x:auto"><table id="sensTable"><thead><tr><th>Value</th><th>Final NH₄⁺</th><th>Final Biomass</th><th>Removal %</th><th>Eff. μ_max</th></tr></thead><tbody></tbody></table></div>
+      <div class="chart" id="sensChart"></div>
+      <div style="overflow-x:auto"><table id="sensTable"><thead><tr><th>Value</th><th>Final NH₄</th><th>Removal %</th><th>Eff. μ_max</th></tr></thead><tbody></tbody></table></div>
     </div>
 
-    <!-- HISTORY TAB -->
-    <div class="tab-panel" id="panel-history">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <h2 style="font-size:16px;color:#333">Saved Simulations</h2>
-        <button class="btn btn-danger btn-sm" onclick="clearHistory()">Clear All</button>
+    <!-- TAB: Kinetics -->
+    <div class="tab-panel" id="panel-kinetics">
+      <p style="font-size:12px;color:#666;margin-bottom:8px">Input time-concentration data to determine kinetic order and rate constants.</p>
+      <div class="inline-group">
+        <div class="param" style="max-width:300px">
+          <label>Data input (comma-separated)</label>
+          <input type="text" id="kinTime" placeholder="Time: 0,1,2,3,4" style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:5px;font-size:12px;margin-bottom:4px">
+          <input type="text" id="kinConc" placeholder="Conc: 50,42,35,29,24" style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:5px;font-size:12px">
+        </div>
+        <button class="btn btn-primary" onclick="runKinetics()" style="margin-bottom:2px">Analyze</button>
       </div>
-      <div id="historyList">
-        <div class="empty-state">No saved runs yet. Run a simulation and click "Save Run".</div>
+      <div class="chart" id="kinChart"></div>
+      <div style="overflow-x:auto"><table id="kinTable"><thead><tr><th>Model</th><th>k</th><th>C₀</th><th>R²</th><th>RMSE</th></tr></thead><tbody></tbody></table></div>
+      <div id="kinBest" class="info" style="display:none"></div>
+    </div>
+
+    <!-- TAB: Estimation -->
+    <div class="tab-panel" id="panel-estimation">
+      <p style="font-size:12px;color:#666;margin-bottom:8px">Upload experimental CSV (columns: time, NH4-N) to estimate Monod or Haldane parameters.</p>
+      <div class="inline-group">
+        <div class="param" style="max-width:160px"><label>Model</label><select id="estModel"><option value="monod">Monod</option><option value="haldane">Haldane (with Ki)</option></select></div>
+        <input type="file" id="estFile" accept=".csv" style="margin:4px 0 8px">
+        <button class="btn btn-primary" onclick="runEstimation()">Estimate Parameters</button>
+      </div>
+      <div class="loading" id="estLoading">Fitting model...</div>
+      <div class="error" id="estError"></div>
+      <div class="chart" id="estChart"></div>
+      <div id="estResults" style="display:none;margin-top:8px">
+        <div class="grid-2" id="estMetrics"></div>
       </div>
     </div>
 
-    <!-- COMPARE TAB -->
-    <div class="tab-panel" id="panel-compare">
-      <h2 style="font-size:16px;color:#333;margin-bottom:12px">Compare Simulations</h2>
-      <div class="compare-container">
-        <div class="compare-panel">
-          <h3>Run A</h3>
-          <select id="compareA" onchange="updateCompare()"><option value="">— Select —</option></select>
-          <div id="compareChartA" style="height:300px"></div>
-          <div class="metrics" id="compareMetricsA"></div>
+    <!-- TAB: Design -->
+    <div class="tab-panel" id="panel-design">
+      <p style="font-size:12px;color:#666;margin-bottom:8px">Design a nitrification reactor based on kinetics.</p>
+      <div class="grid-2">
+        <div>
+          <div class="param"><label>Influent NH₄ (mg/L)</label><input type="number" id="des_S_in" value="50" min="1"></div>
+          <div class="param"><label>Flow rate Q (m³/day)</label><input type="number" id="des_Q" value="1000" min="1"></div>
+          <div class="param"><label>Target effluent (mg/L)</label><input type="number" id="des_target" value="5" min="0.1"></div>
+          <div class="param"><label>Biomass X (g/L)</label><input type="number" id="des_X" value="2.0" min="0.01" step="0.1"></div>
         </div>
-        <div class="compare-panel">
-          <h3>Run B</h3>
-          <select id="compareB" onchange="updateCompare()"><option value="">— Select —</option></select>
-          <div id="compareChartB" style="height:300px"></div>
-          <div class="metrics" id="compareMetricsB"></div>
+        <div>
+          <div class="param"><label>μ_max (/day)</label><input type="number" id="des_mu_max" value="0.8" min="0.01" step="0.1"></div>
+          <div class="param"><label>K_s (mg/L)</label><input type="number" id="des_Ks" value="2.0" min="0.1" step="0.5"></div>
+          <div class="param"><label>Yield Y</label><input type="number" id="des_Y" value="0.15" min="0.01" step="0.01"></div>
+          <div class="param"><label>DO (mg/L)</label><input type="number" id="des_DO" value="4.0" min="0" step="0.1"></div>
         </div>
       </div>
-      <div style="margin-top:12px">
-        <div id="compareOverlayChart" style="height:350px"></div>
+      <button class="btn btn-primary" onclick="runDesign()" style="margin-top:4px">Design Reactor</button>
+      <div id="designResults" style="display:none;margin-top:8px"><div class="grid-2" id="designMetrics"></div></div>
+    </div>
+
+    <!-- TAB: Oxygen -->
+    <div class="tab-panel" id="panel-oxygen">
+      <p style="font-size:12px;color:#666;margin-bottom:8px">Calculate oxygen demand based on NH₄-N removal (4.57 mg O₂/mg NH₄-N).</p>
+      <div class="inline-group">
+        <div class="param" style="max-width:200px"><label>NH₄-N removed per day (kg)</label><input type="number" id="ox_NH4" value="50" min="0" step="1"></div>
+        <button class="btn btn-primary" onclick="runOxygen()" style="margin-bottom:2px">Calculate</button>
+      </div>
+      <div id="oxResults" style="display:none;margin-top:8px"><div class="grid-2" id="oxMetrics"></div></div>
+    </div>
+
+    <!-- TAB: Reactor -->
+    <div class="tab-panel" id="panel-reactor">
+      <p style="font-size:12px;color:#666;margin-bottom:8px">Compare batch reactor vs CSTR (continuous stirred-tank reactor) transient dynamics.</p>
+      <div class="grid-2">
+        <div>
+          <h3 style="font-size:12px;color:#333;margin:4px 0">Batch Reactor</h3>
+          <div class="param"><label>Initial NH₄⁺ (mg/L)</label><input type="number" id="rct_batch_S" value="50" min="1" max="200"></div>
+          <div class="param"><label>Initial Biomass (g/L)</label><input type="number" id="rct_batch_X" value="0.1" min="0.01" step="0.01"></div>
+        </div>
+        <div>
+          <h3 style="font-size:12px;color:#333;margin:4px 0">CSTR</h3>
+          <div class="param"><label>Influent NH₄⁺ (mg/L)</label><input type="number" id="rct_S_in" value="50" min="1" max="200"></div>
+          <div class="param-group">
+            <div class="param"><label>Flow Q (m³/day)</label><input type="number" id="rct_Q" value="1000" min="100" step="100"></div>
+            <div class="param"><label>Volume (m³)</label><input type="number" id="rct_V" value="1000" min="100" step="100"></div>
+          </div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div>
+          <h3 style="font-size:12px;color:#333;margin:4px 0">Kinetics</h3>
+          <div class="param"><label>μ_max (/day)</label><input type="number" id="rct_mu_max" value="0.8" min="0.1" step="0.1"></div>
+          <div class="param"><label>K_s (mg/L)</label><input type="number" id="rct_Ks" value="2.0" min="0.5" step="0.5"></div>
+          <div class="param"><label>Yield Y</label><input type="number" id="rct_Y" value="0.15" min="0.01" step="0.01"></div>
+        </div>
+        <div>
+          <h3 style="font-size:12px;color:#333;margin:4px 0">Conditions</h3>
+          <div class="param"><label>Temp (°C)</label><input type="number" id="rct_T" value="20" min="0" max="45"></div>
+          <div class="param"><label>pH</label><input type="number" id="rct_pH" value="7.5" min="2" max="12" step="0.1"></div>
+          <div class="param"><label>DO (mg/L)</label><input type="number" id="rct_DO" value="4.0" min="0" max="10" step="0.1"></div>
+          <div class="param"><label>Duration (days)</label><input type="number" id="rct_days" value="20" min="1" max="100"></div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="runReactor()" style="margin-top:4px">Compare Reactors</button>
+      <div class="loading" id="rctLoading">Running simulation...</div>
+      <div class="error" id="rctError"></div>
+      <div class="chart" id="rctChart"></div>
+      <div class="grid-2" id="rctMetrics"></div>
+    </div>
+
+    <!-- TAB: Theory -->
+    <div class="tab-panel" id="panel-theory">
+      <div class="grid-2">
+        <div>
+          <h3 style="font-size:13px;color:#333;margin:6px 0;display:flex;align-items:center;gap:6px"><span style="background:#4a6cf7;color:white;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">1</span> Monod Kinetics</h3>
+          <div class="eq-box">μ = μ<sub>max</sub> · S / (K<sub>s</sub> + S)</div>
+          <h3 style="font-size:13px;color:#333;margin:8px 0;display:flex;align-items:center;gap:6px"><span style="background:#4a6cf7;color:white;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">2</span> Haldane Inhibition</h3>
+          <div class="eq-box">μ = μ<sub>max</sub> · S / (K<sub>s</sub> + S + S²/K<sub>i</sub>)</div>
+          <h3 style="font-size:13px;color:#333;margin:8px 0;display:flex;align-items:center;gap:6px"><span style="background:#4a6cf7;color:white;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">3</span> Temperature Effect</h3>
+          <div class="eq-box">μ(T) = μ<sub>20</sub> · θ<sup>(T-20)</sup>, &nbsp;θ ≈ 1.07</div>
+          <h3 style="font-size:13px;color:#333;margin:8px 0;display:flex;align-items:center;gap:6px"><span style="background:#4a6cf7;color:white;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">4</span> DO Limitation</h3>
+          <div class="eq-box">μ = μ<sub>max</sub> · S/(K<sub>s</sub>+S) · DO/(K<sub>DO</sub>+DO)</div>
+        </div>
+        <div>
+          <h3 style="font-size:13px;color:#333;margin:6px 0;display:flex;align-items:center;gap:6px"><span style="background:#10b981;color:white;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">5</span> AOB/NOB Model</h3>
+          <div class="eq-box"><strong>NH₄⁺ → NO₂⁻ (AOB):</strong> dNH₄/dt = -μ·X<sub>AOB</sub>/Y<sub>AOB</sub><br><strong>NO₂⁻ → NO₃⁻ (NOB):</strong> dNO₂/dt = μ·X<sub>AOB</sub>/Y<sub>AOB</sub> - μ·X<sub>NOB</sub>/Y<sub>NOB</sub></div>
+          <h3 style="font-size:13px;color:#333;margin:8px 0;display:flex;align-items:center;gap:6px"><span style="background:#10b981;color:white;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">6</span> Kinetic Orders</h3>
+          <div class="eq-box"><strong>Zero:</strong> C = C₀ - kt &nbsp;|&nbsp; <strong>First:</strong> C = C₀e<sup>-kt</sup> &nbsp;|&nbsp; <strong>Second:</strong> 1/C = 1/C₀ + kt</div>
+          <h3 style="font-size:13px;color:#333;margin:8px 0;display:flex;align-items:center;gap:6px"><span style="background:#10b981;color:white;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">7</span> Free Ammonia / FNA</h3>
+          <div class="eq-box"><strong>FA</strong> = NH₄·10<sup>(pH-pKa)</sup> / (1 + 10<sup>(pH-pKa)</sup>)<br><strong>FNA</strong> = NO₂ / (1 + 10<sup>(pH-pKa)</sup>)</div>
+          <h3 style="font-size:13px;color:#333;margin:8px 0;display:flex;align-items:center;gap:6px"><span style="background:#10b981;color:white;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">8</span> Oxygen Demand</h3>
+          <div class="eq-box">O₂ = 4.57 · ΔNH₄-N &nbsp;|&nbsp; Air = O₂ / (0.23 · 0.20)</div>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-const STORAGE_KEY = 'nitrification_saved_runs';
-let lastResult = null;
-
 // ---- Init ----
-document.querySelectorAll('.sidebar input[type="range"]').forEach(el => {
-  el.addEventListener('input', () => { updateSlider(el); updateEffMuMax(); });
-});
-toggleInhibitor();
-updateEffMuMax();
-Plotly.react(document.getElementById('chart'), [], {title:'Run a simulation to see results',font:{size:14},xaxis:{visible:false},yaxis:{visible:false}});
-renderHistory();
-updateCompareSelects();
-
+document.querySelectorAll('.sidebar input[type="range"]').forEach(el => el.addEventListener('input', function(){ updateSlider(this); }));
 function updateSlider(el) {
-  const val = parseFloat(el.value);
-  const display = Number.isInteger(val) ? val.toString() : val.toFixed(2);
-  const label = document.getElementById(el.id + '_val');
-  if (label) label.textContent = display;
+  const v = parseFloat(el.value);
+  const d = Number.isInteger(v) ? v.toString() : v.toFixed(2);
+  const lbl = document.getElementById(el.id+'_val');
+  if(lbl) lbl.textContent = d;
 }
-
-function updateEffMuMax() {
-  const mu = parseFloat(document.getElementById('mu_max').value);
-  const T = parseFloat(document.getElementById('temperature').value);
-  const pH = parseFloat(document.getElementById('pH').value);
-  const theta = 1.07;
-  const tempFactor = theta ** (T - 20);
-  let pHFactor = 1;
-  if (pH < 6.5) pHFactor = Math.exp(-0.5 * ((pH - 6.5) / 1.5) ** 2);
-  else if (pH > 8.5) pHFactor = Math.exp(-0.5 * ((pH - 8.5) / 1.5) ** 2);
-  const eff = mu * tempFactor * pHFactor;
-  document.getElementById('effMuMaxDisplay').textContent = eff.toFixed(4);
+function toggleInhibitor(){
+  document.getElementById('inhibitor-section').style.display = document.getElementById('inhibition_type').value==='none'?'none':'block';
 }
+toggleInhibitor();
+Plotly.react(document.getElementById('simChart'),[],{title:'Run a simulation',font:{size:14}});
+Plotly.react(document.getElementById('aobChart'),[],{title:'Run AOB/NOB',font:{size:14}});
+Plotly.react(document.getElementById('sensChart'),[],{title:'Run sensitivity',font:{size:14}});
+Plotly.react(document.getElementById('kinChart'),[],{title:'Input data and analyze',font:{size:14}});
+Plotly.react(document.getElementById('estChart'),[],{title:'Upload CSV to estimate',font:{size:14}});
+Plotly.react(document.getElementById('rctChart'),[],{title:'Configure and compare reactors',font:{size:14}});
 
-function toggleInhibitor() {
-  const type = document.getElementById('inhibition_type').value;
-  document.getElementById('inhibitor-section').style.display = type === 'none' ? 'none' : 'block';
-}
-
-function switchTab(name) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
-  document.getElementById('sidebar').style.display = (name === 'simulate') ? 'flex' : 'none';
-  if (name === 'history') renderHistory();
-  if (name === 'compare') { updateCompareSelects(); updateCompare(); }
-  if (name === 'sensitivity') updateSensRange();
-}
-
-function getPayload() {
-  return {
-    S_init: parseFloat(document.getElementById('S_init').value),
-    X_init: parseFloat(document.getElementById('X_init').value),
-    time_days: parseFloat(document.getElementById('time_days').value),
-    mu_max: parseFloat(document.getElementById('mu_max').value),
-    Ks: parseFloat(document.getElementById('Ks').value),
-    Y: parseFloat(document.getElementById('Y').value),
-    inhibition_type: document.getElementById('inhibition_type').value,
-    inhibitor: parseFloat(document.getElementById('inhibitor').value),
-    KI: parseFloat(document.getElementById('KI').value),
-    temperature: parseFloat(document.getElementById('temperature').value),
-    pH: parseFloat(document.getElementById('pH').value),
-  };
-}
-
-function resetDefaults() {
-  const defaults = {S_init:50,X_init:0.1,mu_max:0.8,Ks:2.0,Y:0.15,time_days:10,temperature:20,pH:7.5,inhibition_type:'none',inhibitor:0,KI:100};
-  for (const [k,v] of Object.entries(defaults)) {
-    const el = document.getElementById(k);
-    if (el) { el.value = v; updateSlider(el); }
-  }
-  toggleInhibitor(); updateEffMuMax();
-  document.getElementById('error').style.display = 'none';
-  clearResults();
-}
-
-function clearResults() {
-  Plotly.react(document.getElementById('chart'), [], {title:'Click "Simulate" to run',font:{size:14}});
-  ['metric_final_S','metric_final_X','metric_removal','metric_mu_eff'].forEach(id => document.getElementById(id).innerHTML = '— <span class="metric-unit">'+getUnit(id)+'</span>');
-  document.getElementById('saveBtn').disabled = true;
-  document.getElementById('exportBtn').style.cssText = 'pointer-events:none;opacity:.5';
-  lastResult = null;
-}
-
-function getUnit(id) {
-  const u={metric_final_S:'mg/L',metric_final_X:'g/L',metric_removal:'%',metric_mu_eff:'/day'};
-  return u[id]||'';
-}
-
-// ---- Simulate ----
-async function simulate() {
-  const btn = document.getElementById('simulateBtn');
-  const loading = document.getElementById('loading');
-  const error = document.getElementById('error');
-  error.style.display = 'none';
-  btn.disabled = true;
-  loading.style.display = 'block';
-
-  try {
-    const payload = getPayload();
-    const res = await fetch('/api/predict', {
-      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
-    });
-    const result = await res.json();
-    if (!result.success) { throw new Error(result.error||result.message); }
-
-    const d = result.data;
-    lastResult = { payload, data: d, timestamp: Date.now() };
-
-    const chartDiv = document.getElementById('chart');
-    const traceS = {x:d.time, y:d.S, type:'scatter', mode:'lines', name:'NH₄⁺ (mg/L)', line:{color:'#4a6cf7',width:2.5}};
-    const traceX = {x:d.time, y:d.X, type:'scatter', mode:'lines', name:'Biomass (g/L)', yaxis:'y2', line:{color:'#10b981',width:2.5,dash:'dash'}};
-    const layout = {
-      title:{text:'Nitrification Dynamics',font:{size:15}},
-      xaxis:{title:'Time (days)',gridcolor:'#eee'},
-      yaxis:{title:'NH₄⁺ (mg/L)',gridcolor:'#eee'},
-      yaxis2:{title:'Biomass (g/L)',overlaying:'y',side:'right',gridcolor:'#eee'},
-      margin:{t:40,r:60,b:50,l:60}, legend:{x:0.01,y:0.99,bgcolor:'rgba(255,255,255,0.8)'}, hovermode:'x unified'
-    };
-    Plotly.react(chartDiv, [traceS, traceX], layout, {responsive:true});
-
-    document.getElementById('metric_final_S').innerHTML = d.final_S.toFixed(2)+' <span class="metric-unit">mg/L</span>';
-    document.getElementById('metric_final_X').innerHTML = d.final_X.toFixed(4)+' <span class="metric-unit">g/L</span>';
-    document.getElementById('metric_removal').innerHTML = d.removal_pct.toFixed(1)+' <span class="metric-unit">%</span>';
-    document.getElementById('metric_mu_eff').innerHTML = d.effective_mu_max.toFixed(4)+' <span class="metric-unit">/day</span>';
-
-    document.getElementById('saveBtn').disabled = false;
-    document.getElementById('exportBtn').style.cssText = '';
-  } catch(err) {
-    error.textContent = err.message;
-    error.style.display = 'block';
-  } finally {
-    btn.disabled = false;
-    loading.style.display = 'none';
-  }
-}
-
-// ---- Save / History ----
-function saveRun() {
-  if (!lastResult) return;
-  const runs = getSavedRuns();
-  const name = 'Run ' + (runs.length + 1);
-  runs.unshift({ name, ...lastResult, id: Date.now() });
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(runs));
-  renderHistory();
-  updateCompareSelects();
-  const badge = document.getElementById('historyBadge');
-  if (badge) badge.textContent = runs.length;
-}
-
-function getSavedRuns() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
-}
-
-function renderHistory() {
-  const container = document.getElementById('historyList');
-  const runs = getSavedRuns();
-  document.getElementById('historyBadge').textContent = runs.length;
-  if (runs.length === 0) {
-    container.innerHTML = '<div class="empty-state">No saved runs yet. Run a simulation and click "Save Run".</div>';
-    return;
-  }
-  container.innerHTML = runs.map((r,i) => {
-    const d = r.data;
-    const date = new Date(r.timestamp).toLocaleString();
-    return `<div class="saved-run" onclick="loadRun(${i})">
-      <span class="del" onclick="event.stopPropagation();deleteRun(${i})">&times;</span>
-      <div class="name">${r.name}</div>
-      <div class="meta">${date} · NH₄⁺ ${d.final_S.toFixed(1)} → ${d.removal_pct.toFixed(1)}% removal · μ_eff=${d.effective_mu_max.toFixed(3)} /day</div>
-    </div>`;
-  }).join('');
-}
-
-function deleteRun(idx) {
-  const runs = getSavedRuns();
-  runs.splice(idx, 1);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(runs));
-  renderHistory();
-  updateCompareSelects();
-}
-
-function clearHistory() {
-  if (!confirm('Delete all saved runs?')) return;
-  localStorage.removeItem(STORAGE_KEY);
-  renderHistory();
-  updateCompareSelects();
-}
-
-function loadRun(idx) {
-  const runs = getSavedRuns();
-  const r = runs[idx];
-  if (!r) return;
-  const p = r.payload;
-  for (const [k,v] of Object.entries(p)) {
-    const el = document.getElementById(k);
-    if (el) { el.value = v; updateSlider(el); }
-  }
-  toggleInhibitor(); updateEffMuMax();
-  switchTab('simulate');
-  // Replay result
-  lastResult = r;
-  const d = r.data;
-  const chartDiv = document.getElementById('chart');
-  const traceS = {x:d.time, y:d.S, type:'scatter', mode:'lines', name:'NH₄⁺ (mg/L)', line:{color:'#4a6cf7',width:2.5}};
-  const traceX = {x:d.time, y:d.X, type:'scatter', mode:'lines', name:'Biomass (g/L)', yaxis:'y2', line:{color:'#10b981',width:2.5,dash:'dash'}};
-  Plotly.react(chartDiv, [traceS, traceX], {
-    title:{text:'Nitrification Dynamics (' + r.name + ')',font:{size:15}},
-    xaxis:{title:'Time (days)',gridcolor:'#eee'},
-    yaxis:{title:'NH₄⁺ (mg/L)',gridcolor:'#eee'},
-    yaxis2:{title:'Biomass (g/L)',overlaying:'y',side:'right',gridcolor:'#eee'},
-    margin:{t:40,r:60,b:50,l:60}, legend:{x:0.01,y:0.99}, hovermode:'x unified'
-  }, {responsive:true});
-  document.getElementById('metric_final_S').innerHTML = d.final_S.toFixed(2)+' <span class="metric-unit">mg/L</span>';
-  document.getElementById('metric_final_X').innerHTML = d.final_X.toFixed(4)+' <span class="metric-unit">g/L</span>';
-  document.getElementById('metric_removal').innerHTML = d.removal_pct.toFixed(1)+' <span class="metric-unit">%</span>';
-  document.getElementById('metric_mu_eff').innerHTML = d.effective_mu_max.toFixed(4)+' <span class="metric-unit">/day</span>';
-  document.getElementById('saveBtn').disabled = false;
-  document.getElementById('exportBtn').style.cssText = '';
-}
-
-// ---- Compare ----
-function updateCompareSelects() {
-  const runs = getSavedRuns();
-  ['compareA','compareB'].forEach(id => {
-    const sel = document.getElementById(id);
-    const current = sel.value;
-    sel.innerHTML = '<option value="">— Select —</option>' + runs.map((r,i) =>
-      `<option value="${i}" ${current==i?'selected':''}>${r.name}</option>`
-    ).join('');
-  });
-}
-
-function updateCompare() {
-  const runs = getSavedRuns();
-  const idxA = parseInt(document.getElementById('compareA').value);
-  const idxB = parseInt(document.getElementById('compareB').value);
-  const runA = !isNaN(idxA) ? runs[idxA] : null;
-  const runB = !isNaN(idxB) ? runs[idxB] : null;
-
-  ['A','B'].forEach((s, i) => {
-    const run = i === 0 ? runA : runB;
-    const chartId = 'compareChart' + s;
-    const metricsId = 'compareMetrics' + s;
-    if (!run) {
-      Plotly.react(document.getElementById(chartId), [], {title:'Select a run',font:{size:13}});
-      document.getElementById(metricsId).innerHTML = '';
-      return;
-    }
-    const d = run.data;
-    const traceS = {x:d.time, y:d.S, type:'scatter', mode:'lines', name:'NH₄⁺', line:{color:'#4a6cf7',width:2}};
-    const traceX = {x:d.time, y:d.X, type:'scatter', mode:'lines', name:'Biomass', yaxis:'y2', line:{color:'#10b981',width:2,dash:'dash'}};
-    Plotly.react(document.getElementById(chartId), [traceS, traceX], {
-      title:{text:run.name,font:{size:13}}, xaxis:{title:'Time (days)'},
-      yaxis:{title:'NH₄⁺'}, yaxis2:{title:'Biomass',overlaying:'y',side:'right'},
-      margin:{t:30,r:40,b:40,l:50}, showlegend:false
-    }, {responsive:true});
-    document.getElementById(metricsId).innerHTML =
-      `<div class="metric"><div class="metric-label">Final NH₄⁺</div><div class="metric-value">${d.final_S.toFixed(1)} <span class="metric-unit">mg/L</span></div></div>
-       <div class="metric"><div class="metric-label">Removal</div><div class="metric-value">${d.removal_pct.toFixed(1)} <span class="metric-unit">%</span></div></div>
-       <div class="metric"><div class="metric-label">μ_eff</div><div class="metric-value">${d.effective_mu_max.toFixed(3)} <span class="metric-unit">/day</span></div></div>`;
-  });
-
-  // Overlay chart
-  if (runA && runB) {
-    const dA = runA.data, dB = runB.data;
-    const traces = [
-      {x:dA.time, y:dA.S, type:'scatter', mode:'lines', name:runA.name+' NH₄⁺', line:{color:'#4a6cf7',width:2}},
-      {x:dA.time, y:dA.X, type:'scatter', mode:'lines', name:runA.name+' Biomass', yaxis:'y2', line:{color:'#4a6cf7',width:2,dash:'dash'}},
-      {x:dB.time, y:dB.S, type:'scatter', mode:'lines', name:runB.name+' NH₄⁺', line:{color:'#10b981',width:2}},
-      {x:dB.time, y:dB.X, type:'scatter', mode:'lines', name:runB.name+' Biomass', yaxis:'y2', line:{color:'#10b981',width:2,dash:'dash'}},
-    ];
-    Plotly.react(document.getElementById('compareOverlayChart'), traces, {
-      title:{text:'Overlay Comparison',font:{size:14}},
-      xaxis:{title:'Time (days)',gridcolor:'#eee'},
-      yaxis:{title:'NH₄⁺ (mg/L)',gridcolor:'#eee'},
-      yaxis2:{title:'Biomass (g/L)',overlaying:'y',side:'right',gridcolor:'#eee'},
-      margin:{t:40,r:60,b:50,l:60}, hovermode:'x unified'
-    }, {responsive:true});
-  } else {
-    Plotly.react(document.getElementById('compareOverlayChart'), [], {title:'Select both Run A and Run B',font:{size:13}});
-  }
-}
-
-// ---- Sensitivity ----
-const SENS_DEFAULTS = {
-  mu_max: {from:0.1, to:2.0, step:0.1},
-  Ks: {from:0.5, to:20, step:0.5},
-  Y: {from:0.05, to:0.5, step:0.01},
-  S_init: {from:1, to:200, step:1},
-  temperature: {from:5, to:40, step:1},
-  pH: {from:5, to:9, step:0.1},
-};
-
-function updateSensRange() {
-  const param = document.getElementById('sensParam').value;
-  const def = SENS_DEFAULTS[param];
-  if (def) {
-    document.getElementById('sensFrom').value = def.from;
-    document.getElementById('sensTo').value = def.to;
-    document.getElementById('sensSteps').value = 10;
-  }
+const SENS_DEFAULTS = {mu_max:{from:0.1,to:2.0},Ks:{from:0.5,to:20},Y:{from:0.05,to:0.5},temperature:{from:5,to:40},pH:{from:5,to:9},DO:{from:0.5,to:8},S_init:{from:1,to:200}};
+function updateSensRange(){
+  const p=document.getElementById('sensParam').value,d=SENS_DEFAULTS[p];
+  if(d){document.getElementById('sensFrom').value=d.from;document.getElementById('sensTo').value=d.to}
 }
 updateSensRange();
 
-async function runSensitivity() {
-  const paramName = document.getElementById('sensParam').value;
-  const from = parseFloat(document.getElementById('sensFrom').value);
-  const to = parseFloat(document.getElementById('sensTo').value);
-  const steps = parseInt(document.getElementById('sensSteps').value) || 10;
-
-  const baseParams = {
-    mu_max: parseFloat(document.getElementById('mu_max').value),
-    Ks: parseFloat(document.getElementById('Ks').value),
-    Y: parseFloat(document.getElementById('Y').value),
-    inhibitor: parseFloat(document.getElementById('inhibitor').value),
-    KI: parseFloat(document.getElementById('KI').value),
-    inhibition_type: document.getElementById('inhibition_type').value,
-    temperature: parseFloat(document.getElementById('temperature').value),
-    pH: parseFloat(document.getElementById('pH').value),
-  };
-
-  const values = [];
-  for (let i = 0; i < steps; i++) {
-    values.push(+(from + (to - from) * i / (steps - 1)).toFixed(4));
-  }
-
-  try {
-    const res = await fetch('/api/sensitivity', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        base_params: baseParams,
-        param_name: paramName,
-        values: values,
-        S_init: parseFloat(document.getElementById('S_init').value),
-        X_init: parseFloat(document.getElementById('X_init').value),
-        time_days: parseFloat(document.getElementById('time_days').value),
-      })
-    });
-    const result = await res.json();
-    if (!result.success) { throw new Error(result.error); }
-
-    const data = result.data;
-    const paramLabel = document.getElementById('sensParam').options[document.getElementById('sensParam').selectedIndex].text;
-
-    // Chart
-    const traceRemoval = {x:data.map(d=>d.param_value), y:data.map(d=>d.removal_pct), type:'scatter', mode:'lines+markers', name:'Removal %', yaxis:'y', line:{color:'#10b981',width:2.5}};
-    const traceFinalS = {x:data.map(d=>d.param_value), y:data.map(d=>d.final_S), type:'scatter', mode:'lines+markers', name:'Final NH₄⁺', yaxis:'y2', line:{color:'#4a6cf7',width:2.5}};
-    const traceMuEff = {x:data.map(d=>d.param_value), y:data.map(d=>d.effective_mu_max), type:'scatter', mode:'lines+markers', name:'Eff. μ_max', yaxis:'y3', line:{color:'#f59e0b',width:2.5,dash:'dot'}};
-    Plotly.react(document.getElementById('sensChart'), [traceRemoval, traceFinalS, traceMuEff], {
-      title:{text:'Sensitivity: ' + paramLabel,font:{size:15}},
-      xaxis:{title:paramLabel, gridcolor:'#eee'},
-      yaxis:{title:'Removal %', gridcolor:'#eee'},
-      yaxis2:{title:'Final NH₄⁺ (mg/L)', overlaying:'y', side:'right', gridcolor:'#eee'},
-      yaxis3:{title:'Eff. μ_max (/day)', overlaying:'y', side:'right', position:0.85, gridcolor:'#eee'},
-      margin:{t:40,r:80,b:60,l:60}, hovermode:'x unified', legend:{x:0,y:1.15,orientation:'h'}
-    }, {responsive:true});
-
-    // Table
-    const tbody = document.querySelector('#sensTable tbody');
-    tbody.innerHTML = data.map(d =>
-      `<tr><td>${d.param_value}</td><td>${d.final_S.toFixed(2)}</td><td>${d.final_X.toFixed(4)}</td><td>${d.removal_pct.toFixed(1)}</td><td>${d.effective_mu_max.toFixed(4)}</td></tr>`
-    ).join('');
-
-  } catch(err) {
-    alert('Sensitivity failed: ' + err.message);
-  }
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+name));
+  document.querySelectorAll('.sidebar').forEach(s=>s.classList.toggle('active',s.id==='sidebar-'+name));
 }
 
-// ---- Export CSV ----
-function exportCSV() {
-  const p = getPayload();
-  const params = new URLSearchParams();
-  for (const [k,v] of Object.entries(p)) { params.set(k, v); }
-  window.open('/api/export?' + params.toString(), '_blank');
+function getPayload(){
+  return{S_init:+document.getElementById('S_init').value,X_init:+document.getElementById('X_init').value,
+    time_days:+document.getElementById('time_days').value,mu_max:+document.getElementById('mu_max').value,
+    Ks:+document.getElementById('Ks').value,Y:+document.getElementById('Y').value,
+    inhibition_type:document.getElementById('inhibition_type').value,inhibitor:+document.getElementById('inhibitor').value,
+    KI:+document.getElementById('KI').value,temperature:+document.getElementById('temperature').value,
+    pH:+document.getElementById('pH').value,DO:+document.getElementById('DO').value};
 }
 
-// ---- Init on load ----
-// Handle native range input
-document.querySelectorAll('.sidebar input[type="range"]').forEach(el => {
-  el.addEventListener('input', function() { updateSlider(this); updateEffMuMax(); });
-});
+// ---- Simulate ----
+async function simulate(){
+  const btn=document.getElementById('simBtn'),ld=document.getElementById('simLoading'),er=document.getElementById('simError');
+  er.style.display='none';btn.disabled=true;ld.style.display='block';
+  try{
+    const res=await fetch('/api/predict',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(getPayload())});
+    const r=await res.json();
+    if(!r.success)throw new Error(r.error||r.message);
+    const d=r.data;
+    Plotly.react(document.getElementById('simChart'),[
+      {x:d.time,y:d.S,type:'scatter',mode:'lines',name:'NH₄⁺',line:{color:'#4a6cf7',width:2.5}},
+      {x:d.time,y:d.X,type:'scatter',mode:'lines',name:'Biomass',yaxis:'y2',line:{color:'#10b981',width:2,dash:'dash'}}
+    ],{title:'Nitrification Dynamics',xaxis:{title:'Time (days)'},yaxis:{title:'NH₄⁺ (mg/L)'},
+      yaxis2:{title:'Biomass (g/L)',overlaying:'y',side:'right'},margin:{t:30,r:60},hovermode:'x unified'},{responsive:true});
+    document.getElementById('simMetrics').innerHTML=
+      `<div class="metric"><div class="metric-label">Final NH₄⁺</div><div class="metric-value">${d.final_S.toFixed(2)} <span class="metric-unit">mg/L</span></div></div>
+       <div class="metric"><div class="metric-label">Removal</div><div class="metric-value">${d.removal_pct.toFixed(1)} <span class="metric-unit">%</span></div></div>
+       <div class="metric"><div class="metric-label">Eff. μ<sub>max</sub></div><div class="metric-value">${d.effective_mu_max.toFixed(4)} <span class="metric-unit">/day</span></div></div>`;
+  }catch(e){er.textContent=e.message;er.style.display='block'}finally{btn.disabled=false;ld.style.display='none'}
+}
+
+// ---- AOB/NOB ----
+async function runAOB(){
+  const ld=document.getElementById('aobLoading'),er=document.getElementById('aobError');
+  er.style.display='none';ld.style.display='block';
+  const p={NH4_init:+document.getElementById('NH4_init').value,NO2_init:+document.getElementById('NO2_init').value,
+    NO3_init:+document.getElementById('NO3_init').value,X_AOB_init:+document.getElementById('X_AOB_init').value,
+    X_NOB_init:+document.getElementById('X_NOB_init').value,time_days:+document.getElementById('aob_time_days').value,
+    mu_max_AOB:+document.getElementById('mu_max_AOB').value,K_NH4:+document.getElementById('K_NH4').value,
+    Y_AOB:+document.getElementById('Y_AOB').value,mu_max_NOB:+document.getElementById('mu_max_NOB').value,
+    K_NO2:+document.getElementById('K_NO2').value,Y_NOB:+document.getElementById('Y_NOB').value,
+    temperature:+document.getElementById('aob_temperature').value,pH:+document.getElementById('aob_pH').value,
+    DO:+document.getElementById('aob_DO').value};
+  try{
+    const res=await fetch('/api/predict/aob-nob',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});
+    const r=await res.json();
+    if(!r.success)throw new Error(r.error);
+    const d=r.data;
+    Plotly.react(document.getElementById('aobChart'),[
+      {x:d.time,y:d.NH4,type:'scatter',mode:'lines',name:'NH₄⁺',line:{color:'#4a6cf7',width:2}},
+      {x:d.time,y:d.NO2,type:'scatter',mode:'lines',name:'NO₂⁻',line:{color:'#f59e0b',width:2}},
+      {x:d.time,y:d.NO3,type:'scatter',mode:'lines',name:'NO₃⁻',line:{color:'#10b981',width:2}},
+      {x:d.time,y:d.X_AOB,type:'scatter',mode:'lines',name:'X_AOB',yaxis:'y2',line:{color:'#6366f1',width:1.5,dash:'dash'}},
+      {x:d.time,y:d.X_NOB,type:'scatter',mode:'lines',name:'X_NOB',yaxis:'y2',line:{color:'#ec4899',width:1.5,dash:'dash'}}
+    ],{title:'AOB/NOB Two-Step Nitrification',xaxis:{title:'Time (days)'},yaxis:{title:'N (mg/L)'},
+      yaxis2:{title:'Biomass (g/L)',overlaying:'y',side:'right'},margin:{t:30,r:60},hovermode:'x unified'},{responsive:true});
+    const w=d.FA_FNA_warnings;
+    document.getElementById('aobFA').innerHTML=
+      `<div style="display:flex;gap:8px;margin:8px 0">
+        <div class="warn-${w.fa.level==='high'?'high':w.fa.level==='moderate'?'moderate':'low'} warn-box" style="flex:1">
+          <strong>FA:</strong> ${w.fa.value} mg/L · ${w.fa.message||'Normal'}</div>
+        <div class="warn-${w.fna.level==='high'?'high':w.fna.level==='moderate'?'moderate':'low'} warn-box" style="flex:1">
+          <strong>FNA:</strong> ${w.fna.value} mg/L · ${w.fna.message||'Normal'}</div>
+      </div>`;
+    document.getElementById('aobMetrics').innerHTML=
+      `<div class="metric"><div class="metric-label">NH₄ Removal</div><div class="metric-value">${d.NH4_removal} <span class="metric-unit">%</span></div></div>
+       <div class="metric"><div class="metric-label">NO₂⁻ Peak</div><div class="metric-value">${d.NO2_peak} <span class="metric-unit">mg/L</span></div></div>
+       <div class="metric"><div class="metric-label">NO₃⁻ Final</div><div class="metric-value">${d.NO3_final} <span class="metric-unit">mg/L</span></div></div>`;
+  }catch(e){er.textContent=e.message;er.style.display='block'}finally{ld.style.display='none'}
+}
+
+// ---- Sensitivity ----
+async function runSensitivity(){
+  const pn=document.getElementById('sensParam').value;
+  const fr=+document.getElementById('sensFrom').value,to=+document.getElementById('sensTo').value,st=+document.getElementById('sensSteps').value||10;
+  const vals=Array.from({length:st},(_,i)=>+(fr+(to-fr)*i/(st-1)).toFixed(4));
+  const bp={mu_max:+document.getElementById('mu_max').value,Ks:+document.getElementById('Ks').value,
+    Y:+document.getElementById('Y').value,temperature:+document.getElementById('temperature').value,
+    pH:+document.getElementById('pH').value,DO:+document.getElementById('DO').value,
+    inhibition_type:document.getElementById('inhibition_type').value,inhibitor:+document.getElementById('inhibitor').value,
+    KI:+document.getElementById('KI').value};
+  try{
+    const res=await fetch('/api/sensitivity',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({base_params:bp,param_name:pn,values:vals,
+        S_init:+document.getElementById('S_init').value,X_init:+document.getElementById('X_init').value,
+        time_days:+document.getElementById('time_days').value})});
+    const r=await res.json();
+    if(!r.success)throw new Error(r.error);
+    const d=r.data,pl=document.getElementById('sensParam').options[document.getElementById('sensParam').selectedIndex].text;
+    Plotly.react(document.getElementById('sensChart'),[
+      {x:d.map(v=>v.param_value),y:d.map(v=>v.removal_pct),type:'scatter',mode:'lines+markers',name:'Removal %',line:{color:'#10b981',width:2.5}},
+      {x:d.map(v=>v.param_value),y:d.map(v=>v.final_S),type:'scatter',mode:'lines+markers',name:'Final NH₄⁺',yaxis:'y2',line:{color:'#4a6cf7',width:2.5}},
+      {x:d.map(v=>v.param_value),y:d.map(v=>v.effective_mu_max),type:'scatter',mode:'lines+markers',name:'Eff. μ_max',yaxis:'y3',line:{color:'#f59e0b',width:2,dash:'dot'}}
+    ],{title:'Sensitivity: '+pl,xaxis:{title:pl},yaxis:{title:'Removal %'},yaxis2:{title:'Final NH₄⁺',overlaying:'y',side:'right'},
+      yaxis3:{title:'Eff. μ_max',overlaying:'y',side:'right',position:.85},margin:{t:30,r:80},hovermode:'x unified'},{responsive:true});
+    document.querySelector('#sensTable tbody').innerHTML=d.map(v=>`<tr><td>${v.param_value}</td><td>${v.final_S.toFixed(2)}</td><td>${v.removal_pct.toFixed(1)}</td><td>${v.effective_mu_max.toFixed(4)}</td></tr>`).join('');
+  }catch(e){alert('Error: '+e.message)}
+}
+
+// ---- Kinetics ----
+async function runKinetics(){
+  const t=document.getElementById('kinTime').value.split(',').map(Number).filter(v=>!isNaN(v));
+  const c=document.getElementById('kinConc').value.split(',').map(Number).filter(v=>!isNaN(v));
+  if(t.length<3||c.length<3){alert('Need at least 3 data points');return}
+  const fd=new FormData();t.forEach(v=>fd.append('time',v));c.forEach(v=>fd.append('conc',v));
+  try{
+    const res=await fetch('/api/kinetic-analysis',{method:'POST',body:fd});
+    const r=await res.json();
+    if(!r.success)throw new Error(r.error);
+    const data=r.results;
+    document.querySelector('#kinTable tbody').innerHTML=data.map(v=>`<tr><td>${v.model}</td><td>${v.k}</td><td>${v.C0}</td><td>${v.R2}</td><td>${v.RMSE}</td></tr>`).join('');
+    document.getElementById('kinBest').style.display='block';
+    document.getElementById('kinBest').innerHTML='<strong>Best fit:</strong> '+r.best_model+' (R²='+r.best_R2+')';
+    const traces=data.map(v=>({x:t,y:v.predicted.length?t.map((_,i)=>v.predicted[i]):[],type:'scatter',mode:'lines',name:v.model+' (R²='+v.R2+')'}));
+    traces.unshift({x:t,y:c,type:'scatter',mode:'markers',name:'Experimental',marker:{color:'#333',size:8}});
+    Plotly.react(document.getElementById('kinChart'),traces,{title:'Kinetic Model Fitting',xaxis:{title:'Time'},yaxis:{title:'Concentration'},margin:{t:30},hovermode:'x unified'},{responsive:true});
+  }catch(e){alert('Error: '+e.message)}
+}
+
+// ---- Estimation ----
+async function runEstimation(){
+  const file=document.getElementById('estFile').files[0];
+  if(!file){alert('Please select a CSV file');return}
+  const ld=document.getElementById('estLoading'),er=document.getElementById('estError');
+  er.style.display='none';ld.style.display='block';
+  const fd=new FormData();fd.append('file',file);
+  fd.append('model_type',document.getElementById('estModel').value);
+  try{
+    const res=await fetch('/api/parameter-estimation',{method:'POST',body:fd});
+    const r=await res.json();
+    if(!r.success)throw new Error(r.error||'Estimation failed');
+    document.getElementById('estResults').style.display='block';
+    Plotly.react(document.getElementById('estChart'),[
+      {x:r.time,y:r.experimental,type:'scatter',mode:'markers',name:'Experimental',marker:{color:'#333',size:7}},
+      {x:r.time,y:r.predicted,type:'scatter',mode:'lines',name:r.model_type==='haldane'?'Haldane (R²='+r.R2+')':'Monod (R²='+r.R2+')',line:{color:'#4a6cf7',width:2.5}}
+    ],{title:'Parameter Estimation - '+r.model_type.charAt(0).toUpperCase()+r.model_type.slice(1),xaxis:{title:'Time'},yaxis:{title:'NH₄⁺ (mg/L)'},margin:{t:30},hovermode:'x unified'},{responsive:true});
+    const kiHtml=r.Ki!==undefined?`<div class="metric"><div class="metric-label">K<sub>i</sub></div><div class="metric-value">${r.Ki} <span class="metric-unit">mg/L</span></div></div>`:'';
+    document.getElementById('estMetrics').innerHTML=
+      `<div class="metric"><div class="metric-label">μ<sub>max</sub></div><div class="metric-value">${r.mu_max} <span class="metric-unit">/day</span></div></div>
+       <div class="metric"><div class="metric-label">K<sub>s</sub></div><div class="metric-value">${r.Ks} <span class="metric-unit">mg/L</span></div></div>
+       <div class="metric"><div class="metric-label">Y</div><div class="metric-value">${r.Y} <span class="metric-unit">-</span></div></div>
+       ${kiHtml}
+       <div class="metric"><div class="metric-label">R²</div><div class="metric-value">${r.R2} <span class="metric-unit"></span></div></div>
+       <div class="metric"><div class="metric-label">RMSE</div><div class="metric-value">${r.RMSE} <span class="metric-unit">mg/L</span></div></div>`;
+  }catch(e){er.textContent=e.message;er.style.display='block'}finally{ld.style.display='none'}
+}
+
+// ---- Reactor ----
+async function runReactor(){
+  const ld=document.getElementById('rctLoading'),er=document.getElementById('rctError');
+  er.style.display='none';ld.style.display='block';
+  const p={S_init:+document.getElementById('rct_batch_S').value,X_init:+document.getElementById('rct_batch_X').value,
+    S_in:+document.getElementById('rct_S_in').value,Q:+document.getElementById('rct_Q').value,
+    V:+document.getElementById('rct_V').value,mu_max:+document.getElementById('rct_mu_max').value,
+    Ks:+document.getElementById('rct_Ks').value,Y:+document.getElementById('rct_Y').value,
+    temperature:+document.getElementById('rct_T').value,pH:+document.getElementById('rct_pH').value,
+    DO:+document.getElementById('rct_DO').value,time_days:+document.getElementById('rct_days').value};
+  try{
+    const res=await fetch('/api/reactor-comparison',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});
+    const r=await res.json();
+    if(!r.success)throw new Error(r.error);
+    const d=r.data;
+    Plotly.react(document.getElementById('rctChart'),[
+      {x:d.time,y:d.batch_S,type:'scatter',mode:'lines',name:'Batch NH₄⁺',line:{color:'#4a6cf7',width:2.5}},
+      {x:d.time,y:d.batch_X,type:'scatter',mode:'lines',name:'Batch Biomass',yaxis:'y2',line:{color:'#4a6cf7',width:1.5,dash:'dash'}},
+      {x:d.time,y:d.cstr_S,type:'scatter',mode:'lines',name:'CSTR NH₄⁺',line:{color:'#f59e0b',width:2.5}},
+      {x:d.time,y:d.cstr_X,type:'scatter',mode:'lines',name:'CSTR Biomass',yaxis:'y2',line:{color:'#f59e0b',width:1.5,dash:'dash'}}
+    ],{title:'Batch vs CSTR Comparison',xaxis:{title:'Time (days)'},yaxis:{title:'NH₄⁺ (mg/L)'},
+      yaxis2:{title:'Biomass (g/L)',overlaying:'y',side:'right'},margin:{t:30,r:60},hovermode:'x unified'},{responsive:true});
+    const h=d.HRT_hours<24 ? d.HRT_hours+' hrs' : (d.HRT_hours/24).toFixed(1)+' days';
+    document.getElementById('rctMetrics').innerHTML=
+      `<div class="metric"><div class="metric-label">Batch: Final NH₄⁺</div><div class="metric-value">${d.batch_final_S} <span class="metric-unit">mg/L</span></div></div>
+       <div class="metric"><div class="metric-label">Batch: Removal</div><div class="metric-value">${d.batch_removal} <span class="metric-unit">%</span></div></div>
+       <div class="metric"><div class="metric-label">CSTR: Steady NH₄⁺</div><div class="metric-value">${d.cstr_ss_S} <span class="metric-unit">mg/L</span></div></div>
+       <div class="metric"><div class="metric-label">CSTR: Removal</div><div class="metric-value">${d.cstr_removal} <span class="metric-unit">%</span></div></div>
+       <div class="metric"><div class="metric-label">CSTR: Eff. μ</div><div class="metric-value">${d.cstr_mu_effective} <span class="metric-unit">/day</span></div></div>
+       <div class="metric"><div class="metric-label">HRT</div><div class="metric-value">${h}</div></div>`;
+  }catch(e){er.textContent=e.message;er.style.display='block'}finally{ld.style.display='none'}
+}
+
+// ---- Design ----
+async function runDesign(){
+  const p={S_in:+document.getElementById('des_S_in').value,Q:+document.getElementById('des_Q').value,
+    target_S_eff:+document.getElementById('des_target').value,mu_max:+document.getElementById('des_mu_max').value,
+    Ks:+document.getElementById('des_Ks').value,Y:+document.getElementById('des_Y').value,
+    X:+document.getElementById('des_X').value,DO:+document.getElementById('des_DO').value};
+  try{
+    const res=await fetch('/api/design-reactor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});
+    const r=await res.json();
+    if(!r.success)throw new Error(r.error);
+    document.getElementById('designResults').style.display='block';
+    document.getElementById('designMetrics').innerHTML=
+      `<div class="metric"><div class="metric-label">HRT</div><div class="metric-value">${r.HRT_hours} <span class="metric-unit">hrs</span></div></div>
+       <div class="metric"><div class="metric-label">Volume</div><div class="metric-value">${r.volume_m3} <span class="metric-unit">m³</span></div></div>
+       <div class="metric"><div class="metric-label">Org. Loading</div><div class="metric-value">${r.organic_loading} <span class="metric-unit">kg/m³·d</span></div></div>
+       <div class="metric"><div class="metric-label">Removal</div><div class="metric-value">${r.removal_pct} <span class="metric-unit">%</span></div></div>`;
+  }catch(e){alert('Error: '+e.message)}
+}
+
+// ---- Oxygen ----
+async function runOxygen(){
+  try{
+    const res=await fetch('/api/oxygen-demand',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({NH4_removed:+document.getElementById('ox_NH4').value})});
+    const r=await res.json();
+    if(!r.success)throw new Error(r.error);
+    document.getElementById('oxResults').style.display='block';
+    document.getElementById('oxMetrics').innerHTML=
+      `<div class="metric"><div class="metric-label">O₂ Demand</div><div class="metric-value">${r.oxygen_demand_kg} <span class="metric-unit">kg/day</span></div></div>
+       <div class="metric"><div class="metric-label">Air Required</div><div class="metric-value">${r.air_required_m3} <span class="metric-unit">m³/day</span></div></div>
+       <div class="metric"><div class="metric-label">Energy</div><div class="metric-value">${r.energy_estimate_kWh} <span class="metric-unit">kWh/day</span></div></div>`;
+  }catch(e){alert('Error: '+e.message)}
+}
+
+// ---- Utility ----
+function exportCSV(){const p=getPayload();const q=new URLSearchParams();for(const[k,v]of Object.entries(p))q.set(k,v);window.open('/api/export?'+q.toString(),'_blank')}
+function saveResult(){alert('Result state saved (local feature)')}
 </script>
 </body>
 </html>
