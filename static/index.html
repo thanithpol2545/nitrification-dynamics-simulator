@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nitrification Dynamics Simulator</title>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #333; }
+        .app { display: flex; min-height: 100vh; }
+        .sidebar { width: 380px; background: white; padding: 24px; border-right: 1px solid #e0e0e0; overflow-y: auto; flex-shrink: 0; }
+        .main { flex: 1; padding: 24px; }
+        h1 { font-size: 20px; margin-bottom: 4px; color: #1a1a2e; }
+        .subtitle { font-size: 13px; color: #666; margin-bottom: 20px; }
+        .section { margin-bottom: 20px; }
+        .section-title { font-size: 13px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+        .param-group { display: flex; gap: 12px; margin-bottom: 8px; }
+        .param { flex: 1; }
+        .param label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; }
+        .param input[type="range"] { width: 100%; margin: 4px 0; accent-color: #4a6cf7; }
+        .param-value { font-size: 14px; font-weight: 600; color: #1a1a2e; }
+        .param-range { font-size: 11px; color: #999; }
+        select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white; }
+        button { width: 100%; padding: 12px; background: #4a6cf7; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-top: 8px; }
+        button:hover { background: #3b5de7; }
+        button:disabled { background: #a0b4f7; cursor: not-allowed; }
+        .loading { text-align: center; padding: 12px; color: #666; font-size: 14px; display: none; }
+        .error { background: #fff0f0; border: 1px solid #ffd4d4; color: #d32f2f; padding: 12px; border-radius: 6px; margin: 12px 0; display: none; font-size: 13px; }
+        #chart { width: 100%; height: 500px; }
+        .metrics { display: flex; gap: 16px; margin-top: 16px; }
+        .metric { background: white; border-radius: 10px; padding: 16px 20px; flex: 1; border: 1px solid #e0e0e0; }
+        .metric-label { font-size: 12px; color: #888; margin-bottom: 4px; }
+        .metric-value { font-size: 22px; font-weight: 700; color: #1a1a2e; }
+        .metric-unit { font-size: 13px; color: #888; font-weight: 400; }
+        .reset-link { display: block; text-align: center; font-size: 12px; color: #888; margin-top: 8px; cursor: pointer; text-decoration: underline; }
+        .reset-link:hover { color: #4a6cf7; }
+        .info { margin-top: 24px; padding: 16px; background: #f8f9fc; border-radius: 8px; font-size: 12px; color: #666; line-height: 1.6; }
+        .info h3 { font-size: 13px; color: #333; margin-bottom: 8px; }
+        .info .formula { font-family: 'Courier New', monospace; background: #eee; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+        @media (max-width: 768px) { .app { flex-direction: column; } .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #e0e0e0; } .metrics { flex-direction: column; } }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="sidebar">
+        <h1>Nitrification Simulator</h1>
+        <div class="subtitle">Monod + Inhibition Kinetics</div>
+
+        <div class="section">
+            <div class="section-title">Initial Conditions</div>
+            <div class="param-group">
+                <div class="param">
+                    <label>NH₄⁺ Init (mg/L)</label>
+                    <input type="range" id="S_init" min="1" max="200" value="50" oninput="updateSlider(this)">
+                    <div><span class="param-value" id="S_init_val">50</span> <span class="param-range">(1–200)</span></div>
+                </div>
+                <div class="param">
+                    <label>Biomass (g/L)</label>
+                    <input type="range" id="X_init" min="0.01" max="1.0" value="0.1" step="0.01" oninput="updateSlider(this)">
+                    <div><span class="param-value" id="X_init_val">0.10</span> <span class="param-range">(0.01–1.0)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Kinetic Parameters</div>
+            <div class="param">
+                <label>μ<sub>max</sub> (/day)</label>
+                <input type="range" id="mu_max" min="0.1" max="2.0" value="0.8" step="0.1" oninput="updateSlider(this)">
+                <div><span class="param-value" id="mu_max_val">0.8</span> <span class="param-range">(0.1–2.0)</span></div>
+            </div>
+            <div class="param-group">
+                <div class="param">
+                    <label>K<sub>s</sub> (mg/L)</label>
+                    <input type="range" id="Ks" min="0.5" max="20" value="2.0" step="0.5" oninput="updateSlider(this)">
+                    <div><span class="param-value" id="Ks_val">2.0</span> <span class="param-range">(0.5–20)</span></div>
+                </div>
+                <div class="param">
+                    <label>Y (yield)</label>
+                    <input type="range" id="Y" min="0.05" max="0.5" value="0.15" step="0.01" oninput="updateSlider(this)">
+                    <div><span class="param-value" id="Y_val">0.15</span> <span class="param-range">(0.05–0.5)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Simulation</div>
+            <div class="param">
+                <label>Duration (days)</label>
+                <input type="range" id="time_days" min="1" max="60" value="10" oninput="updateSlider(this)">
+                <div><span class="param-value" id="time_days_val">10</span> <span class="param-range">(1–60)</span></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Inhibition</div>
+            <div class="param" style="margin-bottom:10px">
+                <label>Type</label>
+                <select id="inhibition_type" onchange="toggleInhibitor()">
+                    <option value="none">None</option>
+                    <option value="competitive">Competitive</option>
+                    <option value="uncompetitive">Uncompetitive</option>
+                    <option value="non-competitive">Non-competitive</option>
+                </select>
+            </div>
+            <div id="inhibitor-section">
+                <div class="param-group">
+                    <div class="param">
+                        <label>Inhibitor I (mg/L)</label>
+                        <input type="range" id="inhibitor" min="0" max="500" value="0" oninput="updateSlider(this)">
+                        <div><span class="param-value" id="inhibitor_val">0</span> <span class="param-range">(0–500)</span></div>
+                    </div>
+                    <div class="param">
+                        <label>K<sub>I</sub> (mg/L)</label>
+                        <input type="range" id="KI" min="1" max="500" value="100" oninput="updateSlider(this)">
+                        <div><span class="param-value" id="KI_val">100</span> <span class="param-range">(1–500)</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button id="simulateBtn" onclick="simulate()">Simulate</button>
+        <span class="reset-link" onclick="resetDefaults()">Reset to defaults</span>
+        <div class="loading" id="loading">Running solver...</div>
+        <div class="error" id="error"></div>
+    </div>
+
+    <div class="main">
+        <div id="chart"></div>
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-label">Final NH₄⁺</div>
+                <div class="metric-value" id="metric_final_S">— <span class="metric-unit">mg/L</span></div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Final Biomass</div>
+                <div class="metric-value" id="metric_final_X">— <span class="metric-unit">g/L</span></div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Removal</div>
+                <div class="metric-value" id="metric_removal">— <span class="metric-unit">%</span></div>
+            </div>
+        </div>
+        <div class="info">
+            <h3>Model Equations</h3>
+            <p><strong>Monod:</strong> <span class="formula">μ = μ_max · S / (K<sub>s</sub> + S)</span></p>
+            <p><strong>Competitive:</strong> <span class="formula">μ = μ_max · S / (K<sub>s</sub>·(1 + I/K<sub>I</sub>) + S)</span></p>
+            <p><strong>Uncompetitive:</strong> <span class="formula">μ = μ_max · S / ((1 + I/K<sub>I</sub>)·(K<sub>s</sub> + S))</span></p>
+            <p><strong>Non-competitive:</strong> <span class="formula">μ = μ_max · S / (K<sub>s</sub> + S·(1 + I/K<sub>I</sub>))</span></p>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateSlider(el) {
+    const val = parseFloat(el.value);
+    const display = val % 1 === 0 ? val.toString() : val.toFixed(2);
+    document.getElementById(el.id + '_val').textContent = display;
+}
+
+function toggleInhibitor() {
+    const type = document.getElementById('inhibition_type').value;
+    document.getElementById('inhibitor-section').style.display = type === 'none' ? 'none' : 'block';
+}
+
+function resetDefaults() {
+    const defaults = { S_init: 50, X_init: 0.1, mu_max: 0.8, Ks: 2.0, Y: 0.15, time_days: 10, inhibition_type: 'none', inhibitor: 0, KI: 100 };
+    for (const [key, val] of Object.entries(defaults)) {
+        const el = document.getElementById(key);
+        if (el) {
+            el.value = val;
+            const evt = new Event('input', { bubbles: true });
+            el.dispatchEvent(evt);
+        }
+    }
+    toggleInhibitor();
+    document.getElementById('error').style.display = 'none';
+    const chartDiv = document.getElementById('chart');
+    Plotly.react(chartDiv, [], { title: 'Click "Simulate" to run' });
+    document.getElementById('metric_final_S').innerHTML = '— <span class="metric-unit">mg/L</span>';
+    document.getElementById('metric_final_X').innerHTML = '— <span class="metric-unit">g/L</span>';
+    document.getElementById('metric_removal').innerHTML = '— <span class="metric-unit">%</span>';
+}
+
+function getPayload() {
+    return {
+        S_init: parseFloat(document.getElementById('S_init').value),
+        X_init: parseFloat(document.getElementById('X_init').value),
+        time_days: parseFloat(document.getElementById('time_days').value),
+        mu_max: parseFloat(document.getElementById('mu_max').value),
+        Ks: parseFloat(document.getElementById('Ks').value),
+        Y: parseFloat(document.getElementById('Y').value),
+        inhibition_type: document.getElementById('inhibition_type').value,
+        inhibitor: parseFloat(document.getElementById('inhibitor').value),
+        KI: parseFloat(document.getElementById('KI').value),
+    };
+}
+
+async function simulate() {
+    const btn = document.getElementById('simulateBtn');
+    const loading = document.getElementById('loading');
+    const error = document.getElementById('error');
+    error.style.display = 'none';
+    btn.disabled = true;
+    loading.style.display = 'block';
+
+    try {
+        const payload = getPayload();
+        const res = await fetch('/api/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        const result = await res.json();
+
+        if (!result.success) {
+            error.textContent = result.error || result.message || 'Simulation failed';
+            error.style.display = 'block';
+            return;
+        }
+
+        const data = result.data;
+        const chartDiv = document.getElementById('chart');
+        const traceS = {
+            x: data.time, y: data.S,
+            type: 'scatter', mode: 'lines',
+            name: 'NH₄⁺ (mg/L)',
+            line: { color: '#4a6cf7', width: 2.5 },
+        };
+        const traceX = {
+            x: data.time, y: data.X,
+            type: 'scatter', mode: 'lines',
+            name: 'Biomass (g/L)',
+            yaxis: 'y2',
+            line: { color: '#10b981', width: 2.5, dash: 'dash' },
+        };
+        const layout = {
+            title: { text: 'Nitrification Dynamics', font: { size: 16 } },
+            xaxis: { title: 'Time (days)', gridcolor: '#eee' },
+            yaxis: { title: 'NH₄⁺ (mg/L)', gridcolor: '#eee' },
+            yaxis2: { title: 'Biomass (g/L)', overlaying: 'y', side: 'right', gridcolor: '#eee' },
+            margin: { t: 50, r: 60, b: 50, l: 60 },
+            legend: { x: 0.01, y: 0.99, bgcolor: 'rgba(255,255,255,0.8)' },
+            hovermode: 'x unified',
+        };
+        Plotly.react(chartDiv, [traceS, traceX], layout, { responsive: true });
+
+        document.getElementById('metric_final_S').innerHTML = data.final_S.toFixed(2) + ' <span class="metric-unit">mg/L</span>';
+        document.getElementById('metric_final_X').innerHTML = data.final_X.toFixed(4) + ' <span class="metric-unit">g/L</span>';
+        document.getElementById('metric_removal').innerHTML = data.removal_pct.toFixed(1) + ' <span class="metric-unit">%</span>';
+
+    } catch (err) {
+        error.textContent = 'Connection error: ' + err.message;
+        error.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        loading.style.display = 'none';
+    }
+}
+
+toggleInhibitor();
+Plotly.react(document.getElementById('chart'), [], { title: 'Click "Simulate" to run', font: { size: 14 } });
+</script>
+</body>
+</html>
