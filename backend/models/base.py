@@ -164,24 +164,66 @@ def cstr_model(t, y, params):
     return [dS_dt, dX_dt]
 
 
+class _OdeResult:
+    __slots__ = ("t", "y", "success", "message")
+    def __init__(self, t, y, success=True, message=""):
+        self.t = t
+        self.y = y
+        self.success = success
+        self.message = message
+
+
+def _linspace(start, stop, num):
+    if num <= 1:
+        return [start]
+    step = (stop - start) / (num - 1)
+    return [start + i * step for i in range(num)]
+
+
+def _rk4(func, t_span, y0, t_eval, args):
+    y0 = list(y0)
+    n = len(y0)
+    y_current = y0[:]
+    y_out = [[] for _ in range(n)]
+
+    def add_state(t, yv):
+        for i in range(n):
+            y_out[i].append(yv[i])
+
+    add_state(t_eval[0], y_current)
+
+    for i in range(len(t_eval) - 1):
+        dt = t_eval[i + 1] - t_eval[i]
+        if dt == 0:
+            add_state(t_eval[i + 1], y_current)
+            continue
+
+        k1 = func(t_eval[i], y_current, *args)
+        s2 = [y_current[j] + 0.5 * dt * k1[j] for j in range(n)]
+        k2 = func(t_eval[i] + 0.5 * dt, s2, *args)
+        s3 = [y_current[j] + 0.5 * dt * k2[j] for j in range(n)]
+        k3 = func(t_eval[i] + 0.5 * dt, s3, *args)
+        s4 = [y_current[j] + dt * k3[j] for j in range(n)]
+        k4 = func(t_eval[i] + dt, s4, *args)
+
+        y_next = [y_current[j] + (dt / 6.0) * (k1[j] + 2.0 * k2[j] + 2.0 * k3[j] + k4[j]) for j in range(n)]
+        y_current = y_next
+        add_state(t_eval[i + 1], y_current)
+
+    return _OdeResult(list(t_eval), y_out)
+
+
 def solve_cstr(init_cond, params, t_span, t_eval=None):
-    import numpy as np
-    from scipy.integrate import solve_ivp
     if t_eval is None:
-        t_eval = np.linspace(t_span[0], t_span[1], 200)
-    sol = solve_ivp(cstr_model, t_span, init_cond, args=(params,), t_eval=t_eval, method="RK45", vectorized=False)
-    if not sol.success:
-        raise RuntimeError(f"CSTR solver failed: {sol.message}")
-    return sol
+        t_eval = _linspace(t_span[0], t_span[1], 200)
+    return _rk4(cstr_model, t_span, init_cond, t_eval, (params,))
 
 
 # ---- Solve wrappers ----
 
 def solve_nitrification(init_cond, params, t_span, t_eval=None):
-    import numpy as np
-    from scipy.integrate import solve_ivp
     if t_eval is None:
-        t_eval = np.linspace(t_span[0], t_span[1], 200)
+        t_eval = _linspace(t_span[0], t_span[1], 200)
 
     if params.get("model_type") == "aob_nob":
         defaults = {"mu_max_AOB": 0.8, "K_NH4": 2.0, "Y_AOB": 0.15,
@@ -190,20 +232,14 @@ def solve_nitrification(init_cond, params, t_span, t_eval=None):
                     "KI_FA_AOB": 150, "KI_FNA_NOB": 0.5}
         for k, v in defaults.items():
             params.setdefault(k, v)
-        sol = solve_ivp(aob_nob_model, t_span, init_cond, args=(params,),
-                        t_eval=t_eval, method="RK45", vectorized=False)
+        return _rk4(aob_nob_model, t_span, init_cond, t_eval, (params,))
     else:
         inhibition_type = params.get("inhibition_type", "none")
         model = kinetic_model_with_inhibition if inhibition_type != "none" else kinetic_model
         defaults = {"K_DO": 0.5}
         for k, v in defaults.items():
             params.setdefault(k, v)
-        sol = solve_ivp(model, t_span, init_cond, args=(params,),
-                        t_eval=t_eval, method="RK45", vectorized=False)
-
-    if not sol.success:
-        raise RuntimeError(f"ODE solver failed: {sol.message}")
-    return sol
+        return _rk4(model, t_span, init_cond, t_eval, (params,))
 
 
 def compute_effective_mu_max(params):
