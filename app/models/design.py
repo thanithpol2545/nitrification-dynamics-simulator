@@ -1,7 +1,6 @@
-import numpy as np
-
 
 def design_reactor(S_in, Q, target_S_eff, mu_max, Ks, Y, X, DO, T=20, pH=7.5):
+    import numpy as np
     mu = mu_max * (S_in / (Ks + S_in))
     T_factor = 1.07 ** (T - 20)
     pH_factor = 1.0 if 6.5 <= pH <= 8.5 else np.exp(-0.5 * ((pH - 6.5 if pH < 6.5 else pH - 8.5) / 1.5) ** 2)

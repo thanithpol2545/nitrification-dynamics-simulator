@@ -1,6 +1,3 @@
-import numpy as np
-from scipy.integrate import solve_ivp
-
 from .inhibition import apply_inhibition
 
 # ---- Environmental factors ----
@@ -10,6 +7,7 @@ def temperature_factor(T, T_ref=20, theta=1.07):
 
 
 def ph_factor(pH):
+    import numpy as np
     if pH <= 0:
         return 0.0
     if 6.5 <= pH <= 8.5:
@@ -166,6 +164,8 @@ def cstr_model(t, y, params):
 
 
 def solve_cstr(init_cond, params, t_span, t_eval=None):
+    import numpy as np
+    from scipy.integrate import solve_ivp
     if t_eval is None:
         t_eval = np.linspace(t_span[0], t_span[1], 200)
     sol = solve_ivp(cstr_model, t_span, init_cond, args=(params,), t_eval=t_eval, method="RK45", vectorized=False)
@@ -177,6 +177,8 @@ def solve_cstr(init_cond, params, t_span, t_eval=None):
 # ---- Solve wrappers ----
 
 def solve_nitrification(init_cond, params, t_span, t_eval=None):
+    import numpy as np
+    from scipy.integrate import solve_ivp
     if t_eval is None:
         t_eval = np.linspace(t_span[0], t_span[1], 200)
 
