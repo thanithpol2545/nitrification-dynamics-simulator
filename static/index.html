@@ -7,57 +7,57 @@
 <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f2f5;color:#1a1a2e}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f2f5;color:#1a1a2e;font-size:15px}
 .tabs{display:flex;background:#fff;border-bottom:1px solid #e0e0e0;position:sticky;top:0;z-index:10;overflow-x:auto}
-.tab{padding:14px 20px;cursor:pointer;font-size:13px;font-weight:500;color:#888;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.tab{padding:14px 22px;cursor:pointer;font-size:14px;font-weight:500;color:#888;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
 .tab:hover{color:#2563eb;background:#f8f9fc}.tab.active{color:#2563eb;border-bottom-color:#2563eb}
 .app{display:flex;min-height:calc(100vh - 48px)}
-.sidebar{width:380px;background:white;padding:16px;border-right:1px solid #e0e0e0;overflow-y:auto;flex-shrink:0;display:none;flex-direction:column}
-.sidebar.active{display:flex}.main{flex:1;padding:18px;overflow-y:auto}
-h1{font-size:18px;color:#1a1a2e;display:flex;align-items:center;gap:8px}
-h1 small{font-size:11px;color:#888;font-weight:400}
-.subtitle{font-size:12px;color:#666;margin-bottom:12px}
+.sidebar{width:400px;background:white;padding:18px;border-right:1px solid #e0e0e0;overflow-y:auto;flex-shrink:0;display:none;flex-direction:column}
+.sidebar.active{display:flex}.main{flex:1;padding:20px;overflow-y:auto}
+h1{font-size:20px;color:#1a1a2e;display:flex;align-items:center;gap:8px}
+h1 small{font-size:12px;color:#888;font-weight:400}
+.subtitle{font-size:13px;color:#666;margin-bottom:12px}
 
-.param-group{display:flex;gap:8px;margin-bottom:4px}
+.param-group{display:flex;gap:8px;margin-bottom:6px}
 .param{flex:1;min-width:0}
-.param label{display:flex;justify-content:space-between;font-size:11px;color:#555;margin-bottom:2px;align-items:center}
+.param label{display:flex;justify-content:space-between;font-size:13px;color:#555;margin-bottom:2px;align-items:center}
 .param label .val{font-weight:600;color:#1a1a2e}
-.param input[type="range"]{width:100%;margin:2px 0;accent-color:#2563eb;height:4px;cursor:pointer}
-select{width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:5px;font-size:12px;background:white;cursor:pointer}
-input[type="number"]{width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:5px;font-size:12px}
+.param input[type="range"]{width:100%;margin:3px 0;accent-color:#2563eb;height:5px;cursor:pointer}
+select{width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:5px;font-size:13px;background:white;cursor:pointer}
+input[type="number"]{width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:5px;font-size:13px}
 
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;text-decoration:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;text-decoration:none}
 .btn-primary{background:#2563eb;color:#fff}.btn-primary:hover{background:#1d4ed8}.btn-primary:disabled{background:#93b4f8;cursor:not-allowed}
 .btn-secondary{background:#e8ecf4;color:#444}.btn-secondary:hover{background:#dce0ec}
 .btn-success{background:#059669;color:#fff}.btn-success:hover{background:#047857}
-.btn-sm{padding:4px 10px;font-size:11px}.btn-block{width:100%}.btn-group{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
-.btn-lg{padding:12px 20px;font-size:14px;gap:8px}
+.btn-sm{padding:5px 12px;font-size:12px}.btn-block{width:100%}.btn-group{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.btn-lg{padding:14px 24px;font-size:15px;gap:8px}
 
-.loading{text-align:center;padding:8px;color:#666;font-size:12px;display:none}
-.error{background:#fef2f2;border:1px solid #fca5a5;color:#b91c1c;padding:8px 12px;border-radius:6px;margin:6px 0;display:none;font-size:12px}
-.info{background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;padding:8px 12px;font-size:11px;margin:6px 0;display:none}
-.chart{width:100%;height:350px}
+.loading{text-align:center;padding:8px;color:#666;font-size:13px;display:none}
+.error{background:#fef2f2;border:1px solid #fca5a5;color:#b91c1c;padding:10px 14px;border-radius:6px;margin:6px 0;display:none;font-size:13px}
+.info{background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;padding:10px 14px;font-size:12px;margin:6px 0;display:none}
+.chart{width:100%;height:400px}
 .tab-panel{display:none}.tab-panel.active{display:block}
-.eq-box{background:#f8f9fc;border-radius:6px;padding:10px 14px;margin:4px 0;font-size:12px;font-family:'Courier New',monospace;border:1px solid #e0e0e0}
+.eq-box{background:#f8f9fc;border-radius:6px;padding:12px 16px;margin:6px 0;font-size:13px;font-family:'Courier New',monospace;border:1px solid #e0e0e0}
 .eq-box strong{color:#2563eb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
-.warn-box{padding:8px 12px;border-radius:6px;font-size:11px;margin:4px 0}
+.warn-box{padding:8px 12px;border-radius:6px;font-size:12px;margin:4px 0}
 .warn-low{background:#f0fdf4;border:1px solid #86efac;color:#166534}
 .warn-moderate{background:#fffbeb;border:1px solid #fcd34d;color:#92400e}
 .warn-high{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b}
-table{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0}
-th{background:#f8f9fc;padding:6px 10px;text-align:right;font-weight:600;color:#555;border-bottom:2px solid #e0e0e0}
-td{padding:4px 10px;text-align:right;border-bottom:1px solid #eee}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}
+th{background:#f8f9fc;padding:7px 12px;text-align:right;font-weight:600;color:#555;border-bottom:2px solid #e0e0e0}
+td{padding:5px 12px;text-align:right;border-bottom:1px solid #eee}
 td:first-child,th:first-child{text-align:left}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-.grid-4{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.grid-4{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
 
-.section{margin-bottom:12px}
-.section-title{font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:flex;align-items:center;gap:4px}
-.section-group{background:#fafbfc;border:1px solid #e8e8e8;border-radius:8px;padding:10px 12px;margin-bottom:10px}
+.section{margin-bottom:14px}
+.section-title{font-size:12px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:flex;align-items:center;gap:4px}
+.section-group{background:#fafbfc;border:1px solid #e8e8e8;border-radius:8px;padding:12px 14px;margin-bottom:12px}
 .section-group .section-title{color:#444;margin-bottom:8px}
 
-.flow-diagram{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;background:white;border:1px solid #e0e0e0;border-radius:10px;margin-bottom:12px;flex-wrap:wrap}
+.flow-diagram{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:white;border:1px solid #e0e0e0;border-radius:10px;margin-bottom:14px;flex-wrap:wrap}
 .flow-box{padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:white;text-align:center;min-width:60px}
 .flow-arrow{font-size:18px;color:#999;font-weight:700}
 .flow-label{font-size:9px;font-weight:400;opacity:.85;display:block;margin-top:2px}
@@ -403,23 +403,23 @@ footer strong{color:#444}
   <div class="tab-panel" id="panel-theory">
     <div class="grid-2">
       <div>
-        <h3 style="font-size:13px;color:#333;margin:8px 0">1. Monod Kinetics</h3>
+        <h3 style="font-size:15px;color:#333;margin:10px 0 6px">1. Monod Kinetics</h3>
         <div class="eq-box">μ = μ<sub>max</sub> · S / (K<sub>s</sub> + S)</div>
-        <h3 style="font-size:13px;color:#333;margin:8px 0">2. Haldane Inhibition</h3>
+        <h3 style="font-size:15px;color:#333;margin:10px 0 6px">2. Haldane Inhibition</h3>
         <div class="eq-box">μ = μ<sub>max</sub> · S / (K<sub>s</sub> + S + S²/K<sub>i</sub>)</div>
-        <h3 style="font-size:13px;color:#333;margin:8px 0">3. Temperature Effect</h3>
+        <h3 style="font-size:15px;color:#333;margin:10px 0 6px">3. Temperature Effect</h3>
         <div class="eq-box">μ(T) = μ<sub>20</sub> · θ<sup>(T-20)</sup>, &nbsp;θ ≈ 1.07</div>
-        <h3 style="font-size:13px;color:#333;margin:8px 0">4. DO Limitation</h3>
+        <h3 style="font-size:15px;color:#333;margin:10px 0 6px">4. DO Limitation</h3>
         <div class="eq-box">μ = μ<sub>max</sub> · S/(K<sub>s</sub>+S) · DO/(K<sub>DO</sub>+DO)</div>
       </div>
       <div>
-        <h3 style="font-size:13px;color:#333;margin:8px 0">5. AOB/NOB Model</h3>
+        <h3 style="font-size:15px;color:#333;margin:10px 0 6px">5. AOB/NOB Model</h3>
         <div class="eq-box"><strong>NH₄⁺ → NO₂⁻ (AOB):</strong> dNH₄/dt = -μ·X<sub>AOB</sub>/Y<sub>AOB</sub><br><strong>NO₂⁻ → NO₃⁻ (NOB):</strong> dNO₂/dt = μ·X<sub>AOB</sub>/Y<sub>AOB</sub> - μ·X<sub>NOB</sub>/Y<sub>NOB</sub></div>
-        <h3 style="font-size:13px;color:#333;margin:8px 0">6. Kinetic Orders</h3>
+        <h3 style="font-size:15px;color:#333;margin:10px 0 6px">6. Kinetic Orders</h3>
         <div class="eq-box"><strong>Zero:</strong> C = C₀ − kt &nbsp;|&nbsp; <strong>First:</strong> C = C₀e<sup>−kt</sup> &nbsp;|&nbsp; <strong>Second:</strong> 1/C = 1/C₀ + kt</div>
-        <h3 style="font-size:13px;color:#333;margin:8px 0">7. Free Ammonia / FNA</h3>
+        <h3 style="font-size:15px;color:#333;margin:10px 0 6px">7. Free Ammonia / FNA</h3>
         <div class="eq-box"><strong>FA</strong> = NH₄·10<sup>(pH−pKa)</sup> / (1 + 10<sup>(pH−pKa)</sup>)<br><strong>FNA</strong> = NO₂ / (1 + 10<sup>(pH−pKa)</sup>)</div>
-        <h3 style="font-size:13px;color:#333;margin:8px 0">8. Oxygen Demand</h3>
+        <h3 style="font-size:15px;color:#333;margin:10px 0 6px">8. Oxygen Demand</h3>
         <div class="eq-box">O₂ = 4.57 · ΔNH₄-N &nbsp;|&nbsp; Air = O₂ / (0.23 · 0.20)</div>
       </div>
     </div>
@@ -433,6 +433,7 @@ footer strong{color:#444}
 </div>
 
 <script>
+const CHART_FONT = "'-apple-system',BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
 const ENG_COLORS = {nh4:'#f97316', no2:'#ef4444', no3:'#2563eb', aob:'#059669', nob:'#7c3aed', biomass:'#059669'};
 const SENS_DEFAULTS = {mu_max:{from:0.1,to:2.0},Ks:{from:0.5,to:20},Y:{from:0.05,to:0.5},temperature:{from:5,to:40},pH:{from:5,to:9},DO:{from:0.5,to:8},S_init:{from:1,to:200}};
 
@@ -444,12 +445,12 @@ function updateSlider(el){
 function toggleInhibitor(){document.getElementById('inhibitor-section').style.display=document.getElementById('inhibition_type').value==='none'?'none':'block'}
 toggleInhibitor();
 
-Plotly.react(document.getElementById('simChart'),[],{title:'Run simulation to display results',font:{size:13},margin:{t:30}});
-Plotly.react(document.getElementById('aobChart'),[],{title:'Run AOB/NOB simulation',font:{size:13},margin:{t:30}});
-Plotly.react(document.getElementById('sensChart'),[],{title:'Configure and run sensitivity analysis',font:{size:13},margin:{t:30}});
-Plotly.react(document.getElementById('kinChart'),[],{title:'Input data and analyze kinetics',font:{size:13},margin:{t:30}});
-Plotly.react(document.getElementById('estChart'),[],{title:'Upload CSV to estimate parameters',font:{size:13},margin:{t:30}});
-Plotly.react(document.getElementById('rctChart'),[],{title:'Configure and compare reactors',font:{size:13},margin:{t:30}});
+Plotly.react(document.getElementById('simChart'),[],{title:'Run simulation to display results',font:{size:14,family:CHART_FONT},margin:{t:50,l:60,r:30,b:40}});
+Plotly.react(document.getElementById('aobChart'),[],{title:'Run AOB/NOB simulation',font:{size:14,family:CHART_FONT},margin:{t:50,l:60,r:30,b:40}});
+Plotly.react(document.getElementById('sensChart'),[],{title:'Configure and run sensitivity analysis',font:{size:14,family:CHART_FONT},margin:{t:50,l:60,r:30,b:40}});
+Plotly.react(document.getElementById('kinChart'),[],{title:'Input data and analyze kinetics',font:{size:14,family:CHART_FONT},margin:{t:50,l:60,r:30,b:40}});
+Plotly.react(document.getElementById('estChart'),[],{title:'Upload CSV to estimate parameters',font:{size:14,family:CHART_FONT},margin:{t:50,l:60,r:30,b:40}});
+Plotly.react(document.getElementById('rctChart'),[],{title:'Configure and compare reactors',font:{size:14,family:CHART_FONT},margin:{t:50,l:60,r:30,b:40}});
 
 function updateSensRange(){
   const p=document.getElementById('sensParam').value,d=SENS_DEFAULTS[p];
@@ -506,8 +507,9 @@ async function simulate(){
     Plotly.react(document.getElementById('simChart'),[
       {x:d.time,y:d.S,type:'scatter',mode:'lines',name:'NH₄⁺',line:{color:ENG_COLORS.nh4,width:2.5}},
       {x:d.time,y:d.X,type:'scatter',mode:'lines',name:'Biomass',yaxis:'y2',line:{color:ENG_COLORS.biomass,width:2,dash:'dash'}}
-    ],{title:'Nitrification Dynamics — Monod Model',xaxis:{title:'Time (days)'},yaxis:{title:'NH₄⁺ (mg/L)',color:ENG_COLORS.nh4},
-      yaxis2:{title:'Biomass (g/L)',overlaying:'y',side:'right',color:ENG_COLORS.biomass},margin:{t:30,r:60},hovermode:'x unified',legend:{orientation:'h',y:1.08}},{responsive:true,toImageButtonOptions:{format:'png'}});
+    ],{title:{text:'Nitrification Dynamics — Monod Model',font:{size:17}},xaxis:{title:{text:'Time (days)',font:{size:14}},tickfont:{size:13}},yaxis:{title:{text:'NH₄⁺ (mg/L)',font:{size:14}},tickfont:{size:13},color:ENG_COLORS.nh4},
+      yaxis2:{title:{text:'Biomass (g/L)',font:{size:14}},tickfont:{size:13},overlaying:'y',side:'right',color:ENG_COLORS.biomass},
+      margin:{t:60,l:75,r:80,b:55},hovermode:'x unified',legend:{orientation:'h',y:1.12,x:0.25,font:{size:13}}},{responsive:true,toImageButtonOptions:{format:'png'}});
     kpi.innerHTML=`<div class="kpi-card"><div class="kpi-label">NH₄⁺ Removal</div><div class="kpi-value">${d.removal_pct.toFixed(1)}<span class="kpi-unit">%</span></div></div>
       <div class="kpi-card"><div class="kpi-label">Final NH₄⁺</div><div class="kpi-value">${d.final_S.toFixed(2)}<span class="kpi-unit">mg/L</span></div></div>
       <div class="kpi-card"><div class="kpi-label">Eff. μ<sub>max</sub></div><div class="kpi-value">${d.effective_mu_max.toFixed(4)}<span class="kpi-unit">/day</span></div></div>`;
@@ -537,8 +539,9 @@ async function runAOB(){
       {x:d.time,y:d.NO3,type:'scatter',mode:'lines',name:'NO₃⁻',line:{color:ENG_COLORS.no3,width:2.5}},
       {x:d.time,y:d.X_AOB,type:'scatter',mode:'lines',name:'X<sub>AOB</sub>',yaxis:'y2',line:{color:ENG_COLORS.aob,width:1.5,dash:'dash'}},
       {x:d.time,y:d.X_NOB,type:'scatter',mode:'lines',name:'X<sub>NOB</sub>',yaxis:'y2',line:{color:ENG_COLORS.nob,width:1.5,dash:'dash'}}
-    ],{title:'AOB/NOB Two-Step Nitrification',xaxis:{title:'Time (days)'},yaxis:{title:'N (mg/L)'},
-      yaxis2:{title:'Biomass (g/L)',overlaying:'y',side:'right'},margin:{t:30,r:60},hovermode:'x unified',legend:{orientation:'h',y:1.08}},{responsive:true,toImageButtonOptions:{format:'png'}});
+    ],{title:{text:'AOB/NOB Two-Step Nitrification',font:{size:17}},xaxis:{title:{text:'Time (days)',font:{size:14}},tickfont:{size:13}},yaxis:{title:{text:'N (mg/L)',font:{size:14}},tickfont:{size:13}},
+      yaxis2:{title:{text:'Biomass (g/L)',font:{size:14}},tickfont:{size:13},overlaying:'y',side:'right'},
+      margin:{t:60,l:75,r:80,b:55},hovermode:'x unified',legend:{orientation:'h',y:1.12,x:0.25,font:{size:13}}},{responsive:true,toImageButtonOptions:{format:'png'}});
     kpi.innerHTML=`<div class="kpi-card"><div class="kpi-label">NH₄⁺ Removed</div><div class="kpi-value">${d.NH4_removal}<span class="kpi-unit">%</span></div></div>
       <div class="kpi-card"><div class="kpi-label">NO₂⁻ Peak</div><div class="kpi-value">${d.NO2_peak}<span class="kpi-unit">mg/L</span></div></div>
       <div class="kpi-card"><div class="kpi-label">NO₃⁻ Final</div><div class="kpi-value">${d.NO3_final}<span class="kpi-unit">mg/L</span></div></div>`;
@@ -571,10 +574,10 @@ async function runSensitivity(){
       {x:d.map(v=>v.param_value),y:d.map(v=>v.removal_pct),type:'scatter',mode:'lines+markers',name:'Removal %',line:{color:ENG_COLORS.nh4,width:2.5}},
       {x:d.map(v=>v.param_value),y:d.map(v=>v.final_S),type:'scatter',mode:'lines+markers',name:'Final NH₄⁺',yaxis:'y2',line:{color:ENG_COLORS.no3,width:2.5}},
       {x:d.map(v=>v.param_value),y:d.map(v=>v.effective_mu_max),type:'scatter',mode:'lines+markers',name:'Eff. μ_max',yaxis:'y3',line:{color:ENG_COLORS.nob,width:2,dash:'dot'}}
-    ],{title:'Sensitivity: '+pl,xaxis:{title:pl},yaxis:{title:'Removal %',color:ENG_COLORS.nh4},
-      yaxis2:{title:'Final NH₄⁺',overlaying:'y',side:'right',color:ENG_COLORS.no3},
-      yaxis3:{title:'Eff. μ_max',overlaying:'y',side:'right',position:.85,color:ENG_COLORS.nob},
-      margin:{t:30,r:80},hovermode:'x unified',legend:{orientation:'h',y:1.08}},{responsive:true});
+    ],{title:{text:'Sensitivity: '+pl,font:{size:17}},xaxis:{title:{text:pl,font:{size:14}},tickfont:{size:13}},yaxis:{title:{text:'Removal %',font:{size:14}},tickfont:{size:13},color:ENG_COLORS.nh4},
+      yaxis2:{title:{text:'Final NH₄⁺',font:{size:14}},tickfont:{size:13},overlaying:'y',side:'right',color:ENG_COLORS.no3},
+      yaxis3:{title:{text:'Eff. μ_max',font:{size:14}},tickfont:{size:13},overlaying:'y',side:'right',position:.85,color:ENG_COLORS.nob},
+      margin:{t:60,l:75,r:90,b:55},hovermode:'x unified',legend:{orientation:'h',y:1.12,x:0.25,font:{size:13}}},{responsive:true});
     document.querySelector('#sensTable tbody').innerHTML=d.map(v=>`<tr><td>${v.param_value}</td><td>${v.final_S.toFixed(2)}</td><td>${v.removal_pct.toFixed(1)}</td><td>${v.effective_mu_max.toFixed(4)}</td></tr>`).join('');
   }catch(e){alert('Error: '+e.message)}
 }
@@ -593,7 +596,7 @@ async function runKinetics(){
     document.getElementById('kinBest').innerHTML='<strong>Best fit:</strong> '+r.best_model+' (R²='+r.best_R2+')';
     const traces=r.results.map(v=>({x:t,y:v.predicted.length?t.map((_,i)=>v.predicted[i]):[],type:'scatter',mode:'lines',name:v.model+' (R²='+v.R2+')'}));
     traces.unshift({x:t,y:c,type:'scatter',mode:'markers',name:'Experimental',marker:{color:'#333',size:8}});
-    Plotly.react(document.getElementById('kinChart'),traces,{title:'Kinetic Model Fitting',xaxis:{title:'Time'},yaxis:{title:'Concentration'},margin:{t:30},hovermode:'x unified',legend:{orientation:'h',y:1.08}},{responsive:true});
+    Plotly.react(document.getElementById('kinChart'),traces,{title:{text:'Kinetic Model Fitting',font:{size:17}},xaxis:{title:{text:'Time',font:{size:14}},tickfont:{size:13}},yaxis:{title:{text:'Concentration',font:{size:14}},tickfont:{size:13}},margin:{t:60,l:75,r:40,b:55},hovermode:'x unified',legend:{orientation:'h',y:1.12,x:0.25,font:{size:13}}},{responsive:true});
   }catch(e){alert('Error: '+e.message)}
 }
 
@@ -611,7 +614,7 @@ async function runEstimation(){
     Plotly.react(document.getElementById('estChart'),[
       {x:r.time,y:r.experimental,type:'scatter',mode:'markers',name:'Experimental',marker:{color:'#333',size:7}},
       {x:r.time,y:r.predicted,type:'scatter',mode:'lines',name:(r.model_type==='haldane'?'Haldane':'Monod')+' (R²='+r.R2+')',line:{color:ENG_COLORS.nh4,width:2.5}}
-    ],{title:'Parameter Estimation — '+r.model_type.charAt(0).toUpperCase()+r.model_type.slice(1),xaxis:{title:'Time'},yaxis:{title:'NH₄⁺ (mg/L)'},margin:{t:30},hovermode:'x unified',legend:{orientation:'h',y:1.08}},{responsive:true});
+    ],{title:{text:'Parameter Estimation — '+r.model_type.charAt(0).toUpperCase()+r.model_type.slice(1),font:{size:17}},xaxis:{title:{text:'Time',font:{size:14}},tickfont:{size:13}},yaxis:{title:{text:'NH₄⁺ (mg/L)',font:{size:14}},tickfont:{size:13}},margin:{t:60,l:75,r:40,b:55},hovermode:'x unified',legend:{orientation:'h',y:1.12,x:0.25,font:{size:13}}},{responsive:true});
     const ki=r.Ki!==undefined?`<div class="kpi-card"><div class="kpi-label">K<sub>i</sub></div><div class="kpi-value">${r.Ki}<span class="kpi-unit">mg/L</span></div></div>`:'';
     document.getElementById('estMetrics').innerHTML=
       `<div class="kpi-card"><div class="kpi-label">μ<sub>max</sub></div><div class="kpi-value">${r.mu_max}<span class="kpi-unit">/day</span></div></div>
@@ -643,8 +646,9 @@ async function runReactor(){
       {x:d.time,y:d.batch_X,type:'scatter',mode:'lines',name:'Batch Biomass',yaxis:'y2',line:{color:ENG_COLORS.aob,width:1.5,dash:'dash'}},
       {x:d.time,y:d.cstr_S,type:'scatter',mode:'lines',name:'CSTR NH₄⁺',line:{color:ENG_COLORS.no2,width:2.5}},
       {x:d.time,y:d.cstr_X,type:'scatter',mode:'lines',name:'CSTR Biomass',yaxis:'y2',line:{color:ENG_COLORS.nob,width:1.5,dash:'dash'}}
-    ],{title:'Batch vs CSTR Comparison',xaxis:{title:'Time (days)'},yaxis:{title:'NH₄⁺ (mg/L)'},
-      yaxis2:{title:'Biomass (g/L)',overlaying:'y',side:'right'},margin:{t:30,r:60},hovermode:'x unified',legend:{orientation:'h',y:1.08}},{responsive:true,toImageButtonOptions:{format:'png'}});
+    ],{title:{text:'Batch vs CSTR Comparison',font:{size:17}},xaxis:{title:{text:'Time (days)',font:{size:14}},tickfont:{size:13}},yaxis:{title:{text:'NH₄⁺ (mg/L)',font:{size:14}},tickfont:{size:13}},
+      yaxis2:{title:{text:'Biomass (g/L)',font:{size:14}},tickfont:{size:13},overlaying:'y',side:'right'},
+      margin:{t:60,l:75,r:85,b:55},hovermode:'x unified',legend:{orientation:'h',y:1.12,x:0.25,font:{size:13}}},{responsive:true,toImageButtonOptions:{format:'png'}});
     const h=d.HRT_hours<24?d.HRT_hours+' hrs':(d.HRT_hours/24).toFixed(1)+' days';
     document.getElementById('rctMetrics').innerHTML=
       `<div class="kpi-card"><div class="kpi-label">Batch: Final NH₄⁺</div><div class="kpi-value">${d.batch_final_S}<span class="kpi-unit">mg/L</span></div></div>
