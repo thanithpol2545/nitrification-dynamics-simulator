@@ -1,82 +1,64 @@
 # Nitrification Dynamics Simulator
 
-Interactive web application for simulating nitrification kinetics using Monod + Inhibition ODE models.
+Interactive web application for simulating **nitrification kinetics** using Monod + Inhibition ODE models, with temperature and pH effects.
+
+**Live demo:** [nitrification-dynamics-simulator-ra.vercel.app](https://nitrification-dynamics-simulator-ra.vercel.app/)
 
 ## Features
 
-- Monod kinetics for NH₄⁺ oxidation
-- Competitive, uncompetitive, and non-competitive inhibition models
-- Interactive Plotly.js visualization
-- Summary metrics (final concentration, removal %)
+- Monod kinetics for NH₄⁺ oxidation with multiple inhibition models
+- Temperature correction (Arrhenius) and pH effect
+- Interactive Plotly.js visualization with real-time parameter adjustment
+- Sensitivity analysis — vary any parameter and see the impact
+- Save, load, and compare simulation runs (localStorage)
+- CSV export of simulation results
 
 ## Tech Stack
 
 | Component | Technology |
 |-----------|-----------|
 | Backend | FastAPI (Python) |
-| ODE Solver | SciPy `solve_ivp` |
+| ODE Solver | SciPy `solve_ivp` (RK45) |
 | Frontend | HTML + Plotly.js |
-| Deployment | Vercel / GitHub |
+| Deployment | Vercel |
+
+## Quick Start
+
+```bash
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+Open http://localhost:8000
 
 ## Project Structure
 
 ```
-nitrification-dynamics-simulator/
 ├── app/
-│   ├── main.py              # FastAPI application
+│   ├── main.py              # FastAPI API endpoints
 │   └── models/
-│       ├── base.py          # ODE model definitions
+│       ├── base.py          # ODE model + temp/pH corrections
 │       └── inhibition.py    # Inhibition factor logic
 ├── api/
 │   └── index.py             # Vercel serverless entry point
 ├── static/
 │   └── index.html           # Interactive frontend
-├── vercel.json              # Vercel deployment config
-├── requirements.txt
-└── README.md
+├── vercel.json
+└── requirements.txt
 ```
 
-## Quick Start
+## API Endpoints
 
-```bash
-# Install dependencies
-pip install -r requirements.txt
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/health` | Health check |
+| POST | `/api/predict` | Run nitrification simulation |
+| POST | `/api/sensitivity` | Parameter sweep analysis |
+| GET | `/api/export` | Download results as CSV |
 
-# Run locally
-uvicorn app.main:app --reload
-
-# Open in browser
-open http://localhost:8000
-```
-
-## API
-
-**POST** `/api/predict`
-
-```json
-{
-  "S_init": 50,
-  "X_init": 0.1,
-  "time_days": 10,
-  "mu_max": 0.8,
-  "Ks": 2.0,
-  "Y": 0.15,
-  "inhibition_type": "none",
-  "inhibitor": 0,
-  "KI": 100
-}
-```
-
-## Deploy to Vercel
+## Deploy
 
 ```bash
 npm i -g vercel
 vercel --prod
 ```
-
-## Model
-
-- **Monod**: μ = μ_max · S / (K_s + S)
-- **Competitive**: μ = μ_max · S / (K_s · (1 + I/K_I) + S)
-- **Uncompetitive**: μ = μ_max · S / ((1 + I/K_I) · (K_s + S))
-- **Non-competitive**: μ = μ_max · S / (K_s + S · (1 + I/K_I))

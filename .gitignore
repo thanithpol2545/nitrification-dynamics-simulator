@@ -12,3 +12,5 @@ build/
 .vercel/
 .vscode/
 *.local
+MECHANISTIC_MODEL_WEB_APP_SKILL.md
+nitrification_webapp_roadmap.md
