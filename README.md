@@ -2,7 +2,7 @@
 
 Interactive web application for simulating **nitrification kinetics** using Monod + Inhibition ODE models, with temperature and pH effects.
 
-**Live demo:** [nitrification-dynamics-simulator-ra.vercel.app](https://nitrification-dynamics-simulator-ra.vercel.app/)
+**Live demo:** [nitrification-dynamics-simulator.vercel.app](https://nitrification-dynamics-simulator.vercel.app)
 
 ## Features
 
@@ -26,7 +26,7 @@ Interactive web application for simulating **nitrification kinetics** using Mono
 
 ```bash
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+uvicorn backend.main:app --reload
 ```
 
 Open http://localhost:8000
@@ -34,11 +34,13 @@ Open http://localhost:8000
 ## Project Structure
 
 ```
-├── app/
+├── backend/
 │   ├── main.py              # FastAPI API endpoints
 │   └── models/
 │       ├── base.py          # ODE model + temp/pH corrections
-│       └── inhibition.py    # Inhibition factor logic
+│       ├── inhibition.py    # Inhibition factor logic
+│       ├── estimation.py    # Parameter estimation
+│       └── design.py        # Reactor design calculations
 ├── api/
 │   └── index.py             # Vercel serverless entry point
 ├── static/
@@ -52,9 +54,14 @@ Open http://localhost:8000
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/health` | Health check |
-| POST | `/api/predict` | Run nitrification simulation |
+| POST | `/api/predict` | Monod simulation |
+| POST | `/api/predict/aob-nob` | AOB/NOB two-step simulation |
 | POST | `/api/sensitivity` | Parameter sweep analysis |
-| GET | `/api/export` | Download results as CSV |
+| POST | `/api/kinetic-analysis` | Kinetic model fitting |
+| POST | `/api/parameter-estimation` | Parameter estimation from CSV |
+| POST | `/api/design-reactor` | Reactor sizing calculation |
+| POST | `/api/oxygen-demand` | Oxygen demand calculation |
+| POST | `/api/reactor-comparison` | Batch vs CSTR comparison |
 
 ## Deploy
 
