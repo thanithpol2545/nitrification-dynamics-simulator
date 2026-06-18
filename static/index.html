@@ -193,13 +193,20 @@ td:first-child,th:first-child{text-align:left}
     <!-- TAB: Kinetics -->
     <div class="tab-panel" id="panel-kinetics">
       <p style="font-size:12px;color:#666;margin-bottom:8px">Input time-concentration data to determine kinetic order and rate constants.</p>
-      <div class="inline-group">
-        <div class="param" style="max-width:300px">
-          <label>Data input (comma-separated)</label>
-          <input type="text" id="kinTime" placeholder="Time: 0,1,2,3,4" style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:5px;font-size:12px;margin-bottom:4px">
-          <input type="text" id="kinConc" placeholder="Conc: 50,42,35,29,24" style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:5px;font-size:12px">
+      <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap">
+        <div class="param" style="max-width:320px">
+          <label>Time values (comma-separated)</label>
+          <input type="text" id="kinTime" placeholder="e.g. 0,1,2,3,4" style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:5px;font-size:12px;margin-bottom:4px">
         </div>
-        <button class="btn btn-primary" onclick="runKinetics()" style="margin-bottom:2px">Analyze</button>
+        <div class="param" style="max-width:320px">
+          <label>Concentration values (comma-separated)</label>
+          <input type="text" id="kinConc" placeholder="e.g. 50,42,35,29,24" style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:5px;font-size:12px;margin-bottom:4px">
+        </div>
+        <button class="btn btn-primary" onclick="runKinetics()" style="margin-top:18px">Analyze</button>
+      </div>
+      <div style="display:flex;gap:6px;margin:6px 0;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" onclick="loadKinExample('monod')">Example: Monod</button>
+        <button class="btn btn-secondary btn-sm" onclick="loadKinExample('first')">Example: First-order</button>
       </div>
       <div class="chart" id="kinChart"></div>
       <div style="overflow-x:auto"><table id="kinTable"><thead><tr><th>Model</th><th>k</th><th>C₀</th><th>R²</th><th>RMSE</th></tr></thead><tbody></tbody></table></div>
@@ -209,10 +216,11 @@ td:first-child,th:first-child{text-align:left}
     <!-- TAB: Estimation -->
     <div class="tab-panel" id="panel-estimation">
       <p style="font-size:12px;color:#666;margin-bottom:8px">Upload experimental CSV (columns: time, NH4-N) to estimate Monod or Haldane parameters.</p>
-      <div class="inline-group">
+      <div class="inline-group" style="flex-wrap:wrap">
         <div class="param" style="max-width:160px"><label>Model</label><select id="estModel"><option value="monod">Monod</option><option value="haldane">Haldane (with Ki)</option></select></div>
         <input type="file" id="estFile" accept=".csv" style="margin:4px 0 8px">
-        <button class="btn btn-primary" onclick="runEstimation()">Estimate Parameters</button>
+        <button class="btn btn-primary" onclick="runEstimation()" style="margin-bottom:2px">Estimate</button>
+        <button class="btn btn-secondary btn-sm" onclick="downloadCsvTemplate()" style="margin-bottom:2px">Download CSV Template</button>
       </div>
       <div class="loading" id="estLoading">Fitting model...</div>
       <div class="error" id="estError"></div>
@@ -570,6 +578,17 @@ async function runOxygen(){
 // ---- Utility ----
 function exportCSV(){const p=getPayload();const q=new URLSearchParams();for(const[k,v]of Object.entries(p))q.set(k,v);window.open('/api/export?'+q.toString(),'_blank')}
 function saveResult(){alert('Result state saved (local feature)')}
+function loadKinExample(type){
+  if(type==='monod'){document.getElementById('kinTime').value='0,1,2,3,4,5,6';document.getElementById('kinConc').value='50,35,25,18,13,9,6'}
+  else{document.getElementById('kinTime').value='0,1,2,3,4,5';document.getElementById('kinConc').value='50,33,22,14,10,6'}
+  runKinetics();
+}
+function downloadCsvTemplate(){
+  const csv='time,NH4-N\n0,50\n1,42\n2,35\n3,29\n4,24\n5,20\n6,17';
+  const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='nitrification_template.csv';a.click();
+  URL.revokeObjectURL(a.href);
+}
 </script>
 </body>
 </html>
