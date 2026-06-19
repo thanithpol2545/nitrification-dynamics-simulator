@@ -20,9 +20,13 @@ h1 small{font-size:12px;color:#888;font-weight:400}
 
 .param-group{display:flex;gap:8px;margin-bottom:6px}
 .param{flex:1;min-width:0}
-.param label{display:flex;justify-content:space-between;font-size:13px;color:#555;margin-bottom:2px;align-items:center}
+.param label{display:flex;justify-content:space-between;font-size:13px;color:#555;margin-bottom:2px;align-items:center;gap:4px}
 .param label .val{font-weight:600;color:#1a1a2e}
 .param input[type="range"]{width:100%;margin:3px 0;accent-color:#2563eb;height:5px;cursor:pointer}
+.val-input{width:58px;padding:2px 4px;border:1px solid #d0d0d0;border-radius:4px;font-size:12px;font-weight:600;color:#1a1a2e;text-align:center;background:white;outline:none;flex-shrink:0}
+.val-input:focus{border-color:#2563eb;box-shadow:0 0 0 2px rgba(37,99,235,.15)}
+.val-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.val-input[type=number]{-moz-appearance:textfield}
 select{width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:5px;font-size:13px;background:white;cursor:pointer}
 input[type="number"]{width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:5px;font-size:13px}
 
@@ -554,11 +558,45 @@ const CHART_FONT = "'-apple-system',BlinkMacSystemFont,'Segoe UI',Roboto,sans-se
 const ENG_COLORS = {nh4:'#f97316', no2:'#eab308', no3:'#22c55e', aob:'#2563eb', nob:'#7c3aed', biomass:'#2563eb'};
 const SENS_DEFAULTS = {mu_max:{from:0.1,to:2.0},Ks:{from:0.5,to:20},Y:{from:0.05,to:0.5},temperature:{from:5,to:40},pH:{from:5,to:9},DO:{from:0.5,to:8},S_init:{from:1,to:200}};
 
-document.querySelectorAll('.sidebar input[type="range"]').forEach(el => el.addEventListener('input', function(){ updateSlider(this); }));
-function updateSlider(el){
+document.querySelectorAll('.sidebar input[type="range"]').forEach(el => { el.addEventListener('input', function(){ sliderToInput(this); }); });
+let _updating=false;
+function sliderToInput(el){
+  if(_updating)return;_updating=true;
   const v=parseFloat(el.value),d=Number.isInteger(v)?v.toString():v.toFixed(2);
-  const lbl=document.getElementById(el.id+'_val');if(lbl)lbl.textContent=d;
+  const inp=document.getElementById(el.id+'_val');if(inp&&inp.tagName==='INPUT')inp.value=d;else if(inp)inp.textContent=d;
+  _updating=false;
 }
+function inputToSlider(el){
+  if(_updating)return;_updating=true;
+  const v=parseFloat(el.value);
+  const id=el.id.replace('_val','');const slider=document.getElementById(id);
+  if(slider&&slider.type==='range'&&!isNaN(v)){
+    const min=parseFloat(slider.min),max=parseFloat(slider.max);
+    slider.value=Math.max(min,Math.min(max,v));
+    const d=Number.isInteger(parseFloat(slider.value))?slider.value:parseFloat(slider.value).toFixed(2);
+    if(parseFloat(slider.value)!==v)el.value=d;
+  }
+  _updating=false;
+}
+function enhanceSliders(){
+  document.querySelectorAll('.sidebar .param label .val').forEach(span=>{
+    if(span.tagName==='SPAN'&&!span.dataset.enhanced){
+      span.dataset.enhanced='1';
+      const id=span.id;
+      if(!id||!id.endsWith('_val'))return;
+      const sliderId=id.replace('_val','');
+      const slider=document.getElementById(sliderId);
+      if(!slider||slider.type!=='range')return;
+      const inp=document.createElement('input');
+      inp.type='number';inp.className='val-input';inp.id=id;
+      inp.value=span.textContent;
+      inp.min=slider.min;inp.max=slider.max;inp.step=slider.step||'any';
+      inp.addEventListener('input',function(){inputToSlider(this);});
+      span.replaceWith(inp);
+    }
+  });
+}
+enhanceSliders();
 function toggleInhibitor(){document.getElementById('inhibitor-section').style.display=document.getElementById('inhibition_type').value==='none'?'none':'block'}
 toggleInhibitor();
 
@@ -607,7 +645,7 @@ const PRESETS = {
 };
 function loadPreset(name){
   const p=PRESETS[name];if(!p)return;
-  for(const[k,v]of Object.entries(p)){const el=document.getElementById(k);if(el)el.value=v;updateSlider(el)}
+  for(const[k,v]of Object.entries(p)){const el=document.getElementById(k);if(el)el.value=v;sliderToInput(el)}
   document.getElementById('inhibition_type').value=p.inhibition_type;toggleInhibitor();
   simulate();
 }
@@ -618,7 +656,7 @@ const AOB_PRESETS = {
 };
 function loadAobPreset(name){
   const p=AOB_PRESETS[name];if(!p)return;
-  for(const[k,v]of Object.entries(p)){const el=document.getElementById(k);if(el)el.value=v;updateSlider(el)}
+  for(const[k,v]of Object.entries(p)){const el=document.getElementById(k);if(el)el.value=v;sliderToInput(el)}
   runAOB();
 }
 
