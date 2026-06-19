@@ -87,15 +87,6 @@ td:first-child,th:first-child{text-align:left}
 
 footer{margin-top:20px;padding:14px 18px;background:white;border-top:1px solid #e0e0e0;text-align:center;font-size:13px;color:#888}
 
-.hero{background:linear-gradient(135deg,#1a1a2e 0%,#2563eb 100%);color:white;padding:48px 36px;border-radius:0 0 16px 16px;margin:-20px -20px 20px -20px;text-align:center}
-.hero h1{font-size:32px;color:white;display:block;margin-bottom:8px}
-.hero p{font-size:15px;color:rgba(255,255,255,.8);max-width:600px;margin:0 auto 20px;line-height:1.5}
-.hero .btn-primary{background:white;color:#2563eb;font-size:14px;padding:12px 28px}
-.hero .btn-primary:hover{background:#f0f2ff}
-.hero .btn-secondary-inv{background:rgba(255,255,255,.15);color:white;font-size:14px;padding:12px 28px;border:1px solid rgba(255,255,255,.3)}
-.hero .btn-secondary-inv:hover{background:rgba(255,255,255,.25)}
-.hero-badge{display:inline-block;background:rgba(255,255,255,.12);padding:4px 14px;border-radius:20px;font-size:11px;margin-bottom:12px;color:rgba(255,255,255,.9)}
-
 .mode-toggle{display:flex;background:#f0f2f5;border-radius:8px;padding:3px;margin-bottom:10px}
 .mode-btn{flex:1;padding:6px 12px;font-size:12px;font-weight:600;border:none;border-radius:6px;cursor:pointer;background:transparent;color:#888;transition:all .15s}
 .mode-btn.active{background:white;color:#2563eb;box-shadow:0 1px 4px rgba(0,0,0,.1)}
@@ -134,16 +125,6 @@ footer{margin-top:20px;padding:14px 18px;background:white;border-top:1px solid #
 @media(max-width:900px){.app{flex-direction:column}.sidebar{width:100%;border-right:none;border-bottom:1px solid #e0e0e0;max-height:50vh}.grid-2,.grid-3,.grid-4,.assumptions-grid,.validation-compare{grid-template-columns:1fr}.flow-diagram{flex-wrap:wrap}.hero{padding:32px 20px}.hero h1{font-size:26px}}</style>
 </head>
 <body>
-
-<div class="hero" id="heroSection">
-  <div class="hero-badge">Interactive Simulation Platform</div>
-  <h1>Nitrification Dynamics Simulator</h1>
-  <p>Interactive simulation of ammonia oxidation, nitrite oxidation, and microbial growth dynamics in activated sludge systems.</p>
-  <div class="btn-group" style="justify-content:center">
-    <button class="btn btn-primary btn-lg" onclick="document.getElementById('heroSection').style.display='none';switchTab('simulate')">▶ Run Simulation</button>
-    <button class="btn btn-secondary-inv btn-lg" onclick="document.getElementById('heroSection').style.display='none';switchTab('theory')">Learn About Model</button>
-  </div>
-</div>
 
 <div class="tabs" id="mainTabs">
   <div class="tab active" data-tab="simulate" onclick="switchTab('simulate')">Simulate</div>
