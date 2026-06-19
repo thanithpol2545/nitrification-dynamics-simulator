@@ -21,6 +21,7 @@ class SimulationRequest(BaseModel):
     mu_max: float = Field(default=0.8, ge=0.01, le=5.0)
     Ks: float = Field(default=2.0, ge=0.1, le=100)
     Y: float = Field(default=0.15, ge=0.01, le=1.0)
+    decay: float = Field(default=0, ge=0, le=1.0)
     inhibition_type: str = Field(default="none", pattern="^(none|competitive|uncompetitive|non-competitive)$")
     inhibitor: float = Field(default=0, ge=0, le=1000)
     KI: float = Field(default=100, ge=0.1, le=1000)
@@ -118,6 +119,7 @@ async def predict(req: SimulationRequest):
 
         params = normalize_params({
             "mu_max": req.mu_max, "Ks": req.Ks, "Y": req.Y,
+            "decay": req.decay,
             "inhibitor": req.inhibitor, "KI": req.KI,
             "inhibition_type": req.inhibition_type,
             "temperature": req.temperature, "pH": req.pH, "DO": req.DO,
@@ -197,11 +199,15 @@ async def sensitivity(req: SensitivityReq):
 
 
 @app.get("/api/export")
-async def export_csv(S_init=50, X_init=0.1, time_days=10, mu_max=0.8, Ks=2.0, Y=0.15,
-                     inhibition_type="none", inhibitor=0, KI=100, temperature=20, pH=7.5, DO=4.0):
+async def export_csv(S_init: float = 50, X_init: float = 0.1, time_days: float = 10,
+                     mu_max: float = 0.8, Ks: float = 2.0, Y: float = 0.15,
+                     inhibition_type: str = "none", inhibitor: float = 0, KI: float = 100,
+                     temperature: float = 20, pH: float = 7.5, DO: float = 4.0,
+                     decay: float = 0):
     try:
         from .models import normalize_params, solve_nitrification
-        params = normalize_params({"mu_max": mu_max, "Ks": Ks, "Y": Y, "inhibitor": inhibitor, "KI": KI,
+        params = normalize_params({"mu_max": mu_max, "Ks": Ks, "Y": Y, "decay": decay,
+                                   "inhibitor": inhibitor, "KI": KI,
                                    "inhibition_type": inhibition_type, "temperature": temperature, "pH": pH, "DO": DO})
         sol = solve_nitrification([S_init, X_init], params, (0, time_days), _linspace(0, time_days, 200))
         lines = ["time_days,NH4_mgL,Biomass_gL"]
@@ -211,6 +217,92 @@ async def export_csv(S_init=50, X_init=0.1, time_days=10, mu_max=0.8, Ks=2.0, Y=
                                  headers={"Content-Disposition": "attachment; filename=nitrification_simulation.csv"})
     except Exception as e:
         return PlainTextResponse(f"Error: {e}", 400)
+
+
+@app.post("/api/export/json")
+async def export_json(req: SimulationRequest):
+    try:
+        from .models import normalize_params, solve_nitrification, compute_effective_mu_max
+        params = normalize_params({
+            "mu_max": req.mu_max, "Ks": req.Ks, "Y": req.Y,
+            "inhibitor": req.inhibitor, "KI": req.KI,
+            "inhibition_type": req.inhibition_type,
+            "temperature": req.temperature, "pH": req.pH, "DO": req.DO,
+        })
+        y0, t_span, t_eval = [req.S_init, req.X_init], (0, req.time_days), _linspace(0, req.time_days, 200)
+        sol = solve_nitrification(y0, params, t_span, t_eval)
+        data = {
+            "model": "Monod Nitrification",
+            "parameters": req.model_dump(),
+            "results": {
+                "time": [round(t, 4) for t in sol.t],
+                "NH4_mgL": [round(max(0, v), 4) for v in sol.y[0]],
+                "Biomass_gL": [round(max(0, v), 4) for v in sol.y[1]],
+            },
+            "summary": {
+                "final_NH4": round(max(0, sol.y[0][-1]), 4),
+                "final_biomass": round(max(0, sol.y[1][-1]), 4),
+                "removal_pct": round((1 - max(0, sol.y[0][-1]) / req.S_init) * 100, 2) if req.S_init > 0 else 0,
+                "effective_mu_max": round(compute_effective_mu_max(params), 4),
+            }
+        }
+        return {"success": True, "data": data}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.post("/api/export/aob-csv")
+async def export_aob_csv(req: AOBNoBRequest):
+    try:
+        from .models import normalize_params, solve_nitrification
+        params = normalize_params({
+            "model_type": "aob_nob",
+            "mu_max_AOB": req.mu_max_AOB, "K_NH4": req.K_NH4, "Y_AOB": req.Y_AOB,
+            "mu_max_NOB": req.mu_max_NOB, "K_NO2": req.K_NO2, "Y_NOB": req.Y_NOB,
+            "temperature": req.temperature, "pH": req.pH, "DO": req.DO,
+        })
+        y0 = [req.NH4_init, req.NO2_init, req.NO3_init, req.X_AOB_init, req.X_NOB_init]
+        t_span, t_eval = (0, req.time_days), _linspace(0, req.time_days, 200)
+        sol = solve_nitrification(y0, params, t_span, t_eval)
+        lines = ["time_days,NH4_mgL,NO2_mgL,NO3_mgL,X_AOB_gL,X_NOB_gL"]
+        for t, nh4, no2, no3, xa, xn in zip(sol.t, sol.y[0], sol.y[1], sol.y[2], sol.y[3], sol.y[4]):
+            lines.append(f"{t:.4f},{max(0,nh4):.4f},{max(0,no2):.4f},{max(0,no3):.4f},{max(0,xa):.4f},{max(0,xn):.4f}")
+        return PlainTextResponse("\n".join(lines), media_type="text/csv",
+                                 headers={"Content-Disposition": "attachment; filename=aob_nob_simulation.csv"})
+    except Exception as e:
+        return PlainTextResponse(f"Error: {e}", 400)
+
+
+@app.post("/api/scenario-compare")
+async def scenario_compare(scenarios: list[AOBNoBRequest]):
+    try:
+        from .models import normalize_params, solve_nitrification
+        results = []
+        for i, req in enumerate(scenarios):
+            params = normalize_params({
+                "model_type": "aob_nob",
+                "mu_max_AOB": req.mu_max_AOB, "K_NH4": req.K_NH4, "Y_AOB": req.Y_AOB,
+                "mu_max_NOB": req.mu_max_NOB, "K_NO2": req.K_NO2, "Y_NOB": req.Y_NOB,
+                "temperature": req.temperature, "pH": req.pH, "DO": req.DO,
+            })
+            y0 = [req.NH4_init, req.NO2_init, req.NO3_init, req.X_AOB_init, req.X_NOB_init]
+            t_eval = _linspace(0, req.time_days, 200)
+            sol = solve_nitrification(y0, params, (0, req.time_days), t_eval)
+            results.append({
+                "scenario": f"Scenario {i+1}",
+                "time": sol.t,
+                "NH4": [max(0, v) for v in sol.y[0]],
+                "NO2": [max(0, v) for v in sol.y[1]],
+                "NO3": [max(0, v) for v in sol.y[2]],
+                "summary": {
+                    "NH4_removal": round((1 - max(0, sol.y[0][-1]) / req.NH4_init) * 100, 2) if req.NH4_init > 0 else 0,
+                    "NO2_peak": round(max(sol.y[1]), 2),
+                    "NO3_final": round(max(0, sol.y[2][-1]), 2),
+                }
+            })
+        return {"success": True, "data": results}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 
 @app.post("/api/kinetic-analysis")

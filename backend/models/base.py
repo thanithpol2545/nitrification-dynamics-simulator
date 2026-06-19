@@ -63,9 +63,10 @@ def kinetic_model(t, y, params):
     mu_max = params["mu_max"]
     Ks = params["Ks"]
     Y = params["Y"]
+    b = params.get("decay", 0)
     mu = mu_max * (S / (Ks + S))
     dS_dt = -(mu * X / Y)
-    dX_dt = mu * X
+    dX_dt = mu * X - b * X
     return [dS_dt, dX_dt]
 
 
@@ -77,8 +78,9 @@ def kinetic_model_with_inhibition(t, y, params):
     mu *= temperature_factor(params.get("temperature", 20))
     mu *= ph_factor(params.get("pH", 7.5))
     mu *= do_factor(params.get("DO", 4.0), params.get("K_DO", 0.5))
+    b = params.get("decay", 0)
     dS_dt = -(mu * X / params["Y"])
-    dX_dt = mu * X
+    dX_dt = mu * X - b * X
     return [dS_dt, dX_dt]
 
 
@@ -288,4 +290,6 @@ def normalize_params(params):
         params["pH"] = max(0, min(14, params["pH"]))
     if "DO" in params:
         params["DO"] = max(0, min(20, params["DO"]))
+    if "decay" in params:
+        params["decay"] = max(0, min(1.0, params["decay"]))
     return params
