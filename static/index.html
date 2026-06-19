@@ -32,13 +32,12 @@ h1 small{font-size:12px;color:#94a3b8;font-weight:500; background: #f1f5f9; padd
 .section-title{font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
 
 /* --- INPUTS & SLIDERS --- */
-.param-input-row{display:flex;align-items:center;gap:6px;margin:6px 0}
-.val-input{width:60px;padding:6px 4px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#1e293b;text-align:center;background:#ffffff;outline:none;flex-shrink:0;height:34px; transition: all 0.2s;}
-.val-input:focus{border-color:#2563eb;background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
-.step-btn{width:28px;height:28px;border:1.5px solid #e2e8f0;border-radius:8px;background:#ffffff;cursor:pointer;font-size:16px;font-weight:600;color:#475569;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;padding:0;transition:all .15s}
-.step-btn:hover{background:#f1f5f9;border-color:#cbd5e1;color:#0f172a}
-.step-btn:active{background:#e2e8f0;transform:scale(.92)}
-.param-unit{font-size:11px;color:#94a3b8;font-weight:600;margin-left:2px;white-space:nowrap}
+.param{flex:1;min-width:0}
+.param label{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#475569;margin-bottom:2px;font-weight:500;gap:4px}
+.param input[type="range"]{width:100%;margin:2px 0;accent-color:#2563eb;height:4px;cursor:pointer}
+.val-input{width:40px;padding:1px 2px;border:1px solid #e2e8f0;border-radius:4px;font-size:12px;font-weight:600;color:#1e293b;text-align:center;background:transparent;outline:none;height:22px; transition: all 0.15s;}
+.val-input:hover{background:#f8fafc;border-color:#cbd5e1}
+.val-input:focus{border-color:#2563eb;background:#fff;box-shadow:0 0 0 2px rgba(37,99,235,.12)}
 
 /* --- BUTTONS --- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s ease;text-decoration:none}
@@ -149,7 +148,7 @@ select{width:100%;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;fo
 
 @media(max-width:1100px){.sidebar{width:min(40vw,300px)}.param-group{flex-direction:column;gap:4px}}
 @media(max-width:820px){.app{flex-direction:column}.sidebar{width:100%;border-right:none;border-bottom:1px solid #e0e0e0;max-height:45vh}.main{padding:14px}.grid-2,.grid-3,.assumptions-grid,.validation-compare{grid-template-columns:1fr}.grid-4{grid-template-columns:repeat(2,1fr)}.kpi-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}.chart{height:min(300px,40vh)}.flow-diagram{flex-wrap:wrap}.scenario-card{min-width:120px}}
-@media(max-width:480px){.sidebar{padding:12px}.main{padding:10px}.kpi-grid{grid-template-columns:1fr 1fr}.kpi-value{font-size:16px}.grid-4{grid-template-columns:1fr 1fr}.chart{height:220px}.tab{padding:10px 10px;font-size:12px}.val-input{width:48px;padding:3px 4px;height:28px;font-size:12px}.step-btn{width:24px;height:24px;font-size:14px}.section-group{padding:8px 10px}.flow-box{padding:6px 10px;font-size:11px;min-width:45px}.flow-arrow{font-size:14px}.preset-btn{padding:3px 8px;font-size:9px}.btn-sm{padding:4px 8px;font-size:11px}.btn-lg{padding:10px 18px;font-size:13px}}
+@media(max-width:480px){.sidebar{padding:12px}.main{padding:10px}.kpi-grid{grid-template-columns:1fr 1fr}.kpi-value{font-size:16px}.grid-4{grid-template-columns:1fr 1fr}.chart{height:220px}.tab{padding:10px 10px;font-size:12px}.val-input{width:36px;height:20px;font-size:11px}.section-group{padding:8px 10px}.param label{font-size:11px}.flow-box{padding:6px 10px;font-size:11px;min-width:45px}.flow-arrow{font-size:14px}.preset-btn{padding:3px 8px;font-size:9px}.btn-sm{padding:4px 8px;font-size:11px}.btn-lg{padding:10px 18px;font-size:13px}}
 @media(max-width:360px){.kpi-grid{grid-template-columns:1fr}.kpi-value{font-size:14px}.grid-4{grid-template-columns:1fr}.tab{padding:8px 8px;font-size:11px}}</style>
 </head>
 <body>
@@ -602,53 +601,10 @@ function inputToSlider(el){
   }
   _updating=false;
 }
-function stepParam(sliderId, dir){
-  const slider=document.getElementById(sliderId); if(!slider) return;
-  const step=parseFloat(slider.step)||1;
-  const v=parseFloat(slider.value)+dir*step;
-  const min=parseFloat(slider.min), max=parseFloat(slider.max);
-  slider.value=Math.max(min,Math.min(max,v));
-  sliderToInput(slider);
-}
-function enhanceParamLayout(){
-  document.querySelectorAll('.sidebar .param').forEach(p=>{
-    if(p.dataset.layoutEnhanced) return;
-    const label=p.querySelector('label');
-    const slider=p.querySelector('input[type="range"]');
-    const vi=p.querySelector('.val-input');
-    if(!label||!slider||!vi) return;
-    p.dataset.layoutEnhanced='1';
-    // Extract clean label name from text nodes only (skip the input element)
-    let labelText='';
-    label.childNodes.forEach(n=>{if(n.nodeType===3)labelText+=n.textContent});
-    labelText=labelText.trim();
-    const unitMatch=labelText.match(/\(([^)]+)\)$/);
-    const unit=unitMatch?unitMatch[1]:'';
-    const cleanName=labelText.replace(/\s*\([^)]+\)\s*$/,'').trim();
-    label.textContent=cleanName;
-    // Move val-input out of label, place between label and slider with steppers
-    const row=document.createElement('div');
-    row.className='param-input-row';
-    const sd=document.createElement('button');
-    sd.type='button';sd.className='step-btn';sd.textContent='−';
-    sd.onclick=function(e){e.preventDefault();stepParam(slider.id,-1)};
-    const su=document.createElement('button');
-    su.type='button';su.className='step-btn';su.textContent='+';
-    su.onclick=function(e){e.preventDefault();stepParam(slider.id,1)};
-    row.appendChild(sd); row.appendChild(vi); row.appendChild(su);
-    if(unit){const us=document.createElement('span');us.className='param-unit';us.textContent=unit;row.appendChild(us)}
-    p.insertBefore(row,slider);
-    // Standardize decimal display based on step size
-    const step=parseFloat(slider.step)||1;
-    vi.dataset.decimals=step>=1?0:step>=0.1?1:step>=0.01?2:3;
-    vi.addEventListener('blur',function(){formatValInput(this)});
-    formatValInput(vi);
-  });
-}
-function formatValInput(el){
-  const d=parseInt(el.dataset.decimals)||1;
-  const v=parseFloat(el.value); if(isNaN(v))return;
-  el.value=v.toFixed(d);
+function formatVal(el){
+  const v=parseFloat(el.value);if(isNaN(v))return;
+  const step=parseFloat(document.getElementById(el.id.replace('_val',''))?.step)||1;
+  el.value=v.toFixed(step>=1?0:step>=0.1?1:2);
 }
 function enhanceSliders(){
   document.querySelectorAll('.sidebar .param label .val').forEach(span=>{
@@ -664,10 +620,11 @@ function enhanceSliders(){
       inp.value=span.textContent;
       inp.min=slider.min;inp.max=slider.max;inp.step=slider.step||'any';
       inp.addEventListener('input',function(){inputToSlider(this);});
+      inp.addEventListener('blur',function(){formatVal(this);});
       span.replaceWith(inp);
+      formatVal(inp);
     }
   });
-  enhanceParamLayout();
 }
 enhanceSliders();
 function toggleInhibitor(){document.getElementById('inhibitor-section').style.display=document.getElementById('inhibition_type').value==='none'?'none':'block'}
