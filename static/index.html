@@ -23,8 +23,9 @@ h1 small{font-size:12px;color:#888;font-weight:400}
 .param label{display:flex;justify-content:space-between;font-size:13px;color:#555;margin-bottom:2px;align-items:center;gap:4px}
 .param label .val{font-weight:600;color:#1a1a2e}
 .param input[type="range"]{width:100%;margin:3px 0;accent-color:#2563eb;height:5px;cursor:pointer}
-.val-input{width:58px;padding:2px 4px;border:1px solid #d0d0d0;border-radius:4px;font-size:12px;font-weight:600;color:#1a1a2e;text-align:center;background:white;outline:none;flex-shrink:0}
-.val-input:focus{border-color:#2563eb;box-shadow:0 0 0 2px rgba(37,99,235,.15)}
+.val-input{width:52px;padding:1px 3px;border:1px solid transparent;border-radius:3px;font-size:12px;font-weight:600;color:#1a1a2e;text-align:center;background:transparent;outline:none;flex-shrink:0}
+.val-input:hover{border-color:#d0d0d0;background:#f8f9fc}
+.val-input:focus{border-color:#2563eb;background:#eff6ff;box-shadow:0 0 0 1px rgba(37,99,235,.2)}
 .val-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .val-input[type=number]{-moz-appearance:textfield}
 select{width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:5px;font-size:13px;background:white;cursor:pointer}
@@ -185,7 +186,7 @@ footer{margin-top:20px;padding:14px 18px;background:white;border-top:1px solid #
     <div class="section-group advanced-param">
       <div class="section-title">Environmental</div>
       <div class="param-group">
-        <div class="param"><label>Temp (°C) <span class="val" id="T_val">20</span></label><input type="range" id="temperature" min="0" max="45" value="20"></div>
+        <div class="param"><label>Temp (°C) <span class="val" id="temperature_val">20</span></label><input type="range" id="temperature" min="0" max="45" value="20"></div>
         <div class="param"><label>pH <span class="val" id="pH_val">7.5</span></label><input type="range" id="pH" min="2" max="12" value="7.5" step="0.1"></div>
       </div>
       <div class="param"><label>DO (mg O₂/L) <span class="val" id="DO_val">4.0</span></label><input type="range" id="DO" min="0" max="10" value="4.0" step="0.1"></div>
@@ -262,7 +263,7 @@ footer{margin-top:20px;padding:14px 18px;background:white;border-top:1px solid #
   <div class="section-group">
     <div class="section-title">Conditions</div>
     <div class="param-group">
-      <div class="param"><label>Temp (°C) <span class="val" id="aob_T_val">20</span></label><input type="range" id="aob_temperature" min="0" max="45" value="20"></div>
+      <div class="param"><label>Temp (°C) <span class="val" id="aob_temperature_val">20</span></label><input type="range" id="aob_temperature" min="0" max="45" value="20"></div>
       <div class="param"><label>pH <span class="val" id="aob_pH_val">7.5</span></label><input type="range" id="aob_pH" min="2" max="12" value="7.5" step="0.1"></div>
     </div>
     <div class="param"><label>DO (mg O₂/L) <span class="val" id="aob_DO_val">4.0</span></label><input type="range" id="aob_DO" min="0" max="10" value="4.0" step="0.1"></div>
