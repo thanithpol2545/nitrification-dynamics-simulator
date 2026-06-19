@@ -20,13 +20,17 @@ h1 small{font-size:12px;color:#888;font-weight:400}
 
 .param-group{display:flex;gap:8px;margin-bottom:6px}
 .param{flex:1;min-width:0}
-.param label{display:flex;justify-content:space-between;font-size:13px;color:#555;margin-bottom:2px;align-items:center;gap:4px}
-.param label .val{font-weight:600;color:#1a1a2e}
-.param input[type="range"]{width:100%;margin:3px 0;accent-color:#2563eb;height:5px;cursor:pointer}
-.val-input{width:38px;padding:2px 2px;border:1px solid #e0e0e0;border-radius:3px;font-size:11px;font-weight:600;color:#1a1a2e;text-align:center;background:#fafbfc;outline:none;flex-shrink:0;line-height:1.4;height:20px}
-.val-input:focus{border-color:#2563eb;background:#fff;box-shadow:0 0 0 2px rgba(37,99,235,.12)}
+.param label{display:block;font-size:12px;color:#555;margin-bottom:2px;font-weight:500}
+.param input[type="range"]{width:100%;margin:2px 0;accent-color:#2563eb;height:4px;cursor:pointer}
+.param-input-row{display:flex;align-items:center;gap:4px;margin:3px 0}
+.val-input{width:90px;padding:6px 8px;border:2px solid #d1d5db;border-radius:8px;font-size:14px;font-weight:600;color:#1a1a2e;text-align:center;background:#fff;outline:none;flex-shrink:0;height:36px}
+.val-input:focus{border-color:#2563eb;background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,.15)}
 .val-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .val-input[type=number]{-moz-appearance:textfield}
+.step-btn{width:30px;height:30px;border:1px solid #d1d5db;border-radius:6px;background:#f9fafb;cursor:pointer;font-size:18px;font-weight:600;color:#374151;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;padding:0;transition:all .1s}
+.step-btn:hover{background:#e5e7eb;border-color:#9ca3af}
+.step-btn:active{background:#d1d5db;transform:scale(.95)}
+.param-unit{font-size:11px;color:#888;font-weight:500;margin-left:2px;white-space:nowrap}
 select{width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:5px;font-size:13px;background:white;cursor:pointer}
 input[type="number"]{width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;background:#fafbfc}
 input[type="number"]:focus{border-color:#2563eb;background:#fff;box-shadow:0 0 0 2px rgba(37,99,235,.1)}
@@ -129,7 +133,7 @@ footer{margin-top:20px;padding:14px 18px;background:white;border-top:1px solid #
 
 @media(max-width:1100px){.sidebar{width:min(40vw,300px)}.param-group{flex-direction:column;gap:4px}}
 @media(max-width:820px){.app{flex-direction:column}.sidebar{width:100%;border-right:none;border-bottom:1px solid #e0e0e0;max-height:45vh}.main{padding:14px}.grid-2,.grid-3,.assumptions-grid,.validation-compare{grid-template-columns:1fr}.grid-4{grid-template-columns:repeat(2,1fr)}.kpi-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}.chart{height:min(300px,40vh)}.flow-diagram{flex-wrap:wrap}.scenario-card{min-width:120px}}
-@media(max-width:480px){.sidebar{padding:12px}.main{padding:10px}.kpi-grid{grid-template-columns:1fr 1fr}.kpi-value{font-size:16px}.grid-4{grid-template-columns:1fr 1fr}.chart{height:220px}.tab{padding:10px 10px;font-size:12px}.param label{font-size:12px}.val-input{width:34px;font-size:10px;height:18px}.section-group{padding:8px 10px}.flow-box{padding:6px 10px;font-size:11px;min-width:45px}.flow-arrow{font-size:14px}.preset-btn{padding:3px 8px;font-size:9px}.btn-sm{padding:4px 8px;font-size:11px}.btn-lg{padding:10px 18px;font-size:13px}}
+@media(max-width:480px){.sidebar{padding:12px}.main{padding:10px}.kpi-grid{grid-template-columns:1fr 1fr}.kpi-value{font-size:16px}.grid-4{grid-template-columns:1fr 1fr}.chart{height:220px}.tab{padding:10px 10px;font-size:12px}.param label{font-size:12px}.val-input{width:72px;padding:4px 6px;height:32px;font-size:13px}.step-btn{width:26px;height:26px;font-size:16px}.section-group{padding:8px 10px}.flow-box{padding:6px 10px;font-size:11px;min-width:45px}.flow-arrow{font-size:14px}.preset-btn{padding:3px 8px;font-size:9px}.btn-sm{padding:4px 8px;font-size:11px}.btn-lg{padding:10px 18px;font-size:13px}}
 @media(max-width:360px){.kpi-grid{grid-template-columns:1fr}.kpi-value{font-size:14px}.grid-4{grid-template-columns:1fr}.tab{padding:8px 8px;font-size:11px}}</style>
 </head>
 <body>
@@ -582,6 +586,54 @@ function inputToSlider(el){
   }
   _updating=false;
 }
+function stepParam(sliderId, dir){
+  const slider=document.getElementById(sliderId); if(!slider) return;
+  const step=parseFloat(slider.step)||1;
+  const v=parseFloat(slider.value)+dir*step;
+  const min=parseFloat(slider.min), max=parseFloat(slider.max);
+  slider.value=Math.max(min,Math.min(max,v));
+  sliderToInput(slider);
+}
+function enhanceParamLayout(){
+  document.querySelectorAll('.sidebar .param').forEach(p=>{
+    if(p.dataset.layoutEnhanced) return;
+    const label=p.querySelector('label');
+    const slider=p.querySelector('input[type="range"]');
+    const vi=p.querySelector('.val-input');
+    if(!label||!slider||!vi) return;
+    p.dataset.layoutEnhanced='1';
+    // Extract clean label name from text nodes only (skip the input element)
+    let labelText='';
+    label.childNodes.forEach(n=>{if(n.nodeType===3)labelText+=n.textContent});
+    labelText=labelText.trim();
+    const unitMatch=labelText.match(/\(([^)]+)\)$/);
+    const unit=unitMatch?unitMatch[1]:'';
+    const cleanName=labelText.replace(/\s*\([^)]+\)\s*$/,'').trim();
+    label.textContent=cleanName;
+    // Move val-input out of label, place between label and slider with steppers
+    const row=document.createElement('div');
+    row.className='param-input-row';
+    const sd=document.createElement('button');
+    sd.type='button';sd.className='step-btn';sd.textContent='−';
+    sd.onclick=function(e){e.preventDefault();stepParam(slider.id,-1)};
+    const su=document.createElement('button');
+    su.type='button';su.className='step-btn';su.textContent='+';
+    su.onclick=function(e){e.preventDefault();stepParam(slider.id,1)};
+    row.appendChild(sd); row.appendChild(vi); row.appendChild(su);
+    if(unit){const us=document.createElement('span');us.className='param-unit';us.textContent=unit;row.appendChild(us)}
+    p.insertBefore(row,slider);
+    // Standardize decimal display based on step size
+    const step=parseFloat(slider.step)||1;
+    vi.dataset.decimals=step>=1?0:step>=0.1?1:step>=0.01?2:3;
+    vi.addEventListener('blur',function(){formatValInput(this)});
+    formatValInput(vi);
+  });
+}
+function formatValInput(el){
+  const d=parseInt(el.dataset.decimals)||1;
+  const v=parseFloat(el.value); if(isNaN(v))return;
+  el.value=v.toFixed(d);
+}
 function enhanceSliders(){
   document.querySelectorAll('.sidebar .param label .val').forEach(span=>{
     if(span.tagName==='SPAN'&&!span.dataset.enhanced){
@@ -599,6 +651,7 @@ function enhanceSliders(){
       span.replaceWith(inp);
     }
   });
+  enhanceParamLayout();
 }
 enhanceSliders();
 function toggleInhibitor(){document.getElementById('inhibitor-section').style.display=document.getElementById('inhibition_type').value==='none'?'none':'block'}
